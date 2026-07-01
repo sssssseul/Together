@@ -1,0 +1,578 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>둘이서 오늘의 카드</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='.9em' font-size='90'%3E%E2%9D%A4%EF%B8%8F%3C/text%3E%3C/svg%3E">
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Gowun+Batang:wght@400;700&family=Noto+Sans+KR:wght@400;500;700&display=swap');
+
+  :root{
+    --bg: #FBEAEF;
+    --card: #F9F6F2;
+    --card-back: #B3A398;
+    --card-back-dark: #96877B;
+    --ink: #453C35;
+    --ink-soft: #9C8F84;
+    --accent: #A8968A;
+  }
+
+  *{box-sizing:border-box;}
+
+  body{
+    margin:0;
+    min-height:100vh;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    background:
+      radial-gradient(circle at 18% 20%, rgba(201,116,143,.10), transparent 45%),
+      radial-gradient(circle at 85% 80%, rgba(143,168,136,.08), transparent 45%),
+      var(--bg);
+    font-family:'Noto Sans KR', sans-serif;
+    color:var(--ink);
+    padding:24px 16px;
+  }
+
+  .card-app{ width:100%; max-width:360px; text-align:center; }
+
+  .eyebrow{
+    margin:0 0 6px;
+    font-size:12px;
+    letter-spacing:.18em;
+    color:var(--ink-soft);
+    font-weight:500;
+  }
+  h1{
+    margin:0 0 14px;
+    font-family:'Gowun Batang', serif;
+    font-size:21px;
+    font-weight:700;
+  }
+  .rule{
+    width:56px; height:2px; margin:0 auto 26px;
+    background:linear-gradient(90deg, transparent, var(--accent), transparent);
+  }
+
+  .stage{
+    position:relative;
+    width:220px;
+    height:280px;
+    margin:0 auto 20px;
+  }
+
+  .deck-shadow{ position:absolute; inset:0; border-radius:16px; }
+  .deck-shadow span{ position:absolute; inset:0; border-radius:16px; background:var(--card-back-dark); }
+  .deck-shadow span:nth-child(1){ transform:translate(6px,10px) rotate(4deg); opacity:.55; }
+  .deck-shadow span:nth-child(2){ transform:translate(3px,5px) rotate(2deg); opacity:.75; }
+
+  .deck-top{
+    position:absolute;
+    inset:0;
+    border-radius:16px;
+    background:linear-gradient(160deg, var(--card-back), var(--card-back-dark));
+    box-shadow: 0 14px 26px rgba(60,50,30,.22);
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    cursor:pointer;
+    transition: transform .5s cubic-bezier(.3,.9,.3,1.1), opacity .4s ease .1s;
+    color:#F4EFE6;
+  }
+  .stage.drawn .deck-top{
+    transform: translateY(-18px) rotate(-7deg) scale(.92);
+    opacity:0;
+  }
+
+  .deck-heart{
+    position:relative;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    filter: drop-shadow(0 6px 10px rgba(60,40,40,.18));
+  }
+  .tab-text{
+    position:absolute;
+    font-family:'Gowun Batang', serif;
+    font-weight:700;
+    font-size:18px;
+    letter-spacing:.04em;
+    color:#fff;
+    text-shadow: 0 1px 3px rgba(0,0,0,.18);
+    animation: heartbeatText 1.7s ease-in-out infinite;
+  }
+  @keyframes heartbeatText{
+    0%, 100% { transform: rotate(-6deg) scale(1); }
+    50% { transform: rotate(-6deg) scale(1.15); }
+  }
+  .tab-text.tap{ animation: tapPopText .38s ease; }
+  @keyframes tapPopText{
+    0% { transform: rotate(-6deg) scale(1); }
+    35% { transform: rotate(-6deg) scale(.78); }
+    68% { transform: rotate(-6deg) scale(1.18); }
+    100% { transform: rotate(-6deg) scale(1); }
+  }
+
+  .result-card{
+    position:absolute;
+    inset:0;
+    border-radius:16px;
+    background:var(--card);
+    box-shadow: 0 16px 30px rgba(60,50,30,.18);
+    padding:26px 20px;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    justify-content:center;
+    gap:14px;
+    opacity:0;
+    pointer-events:none;
+    cursor:pointer;
+    transform:translateY(10px) scale(.94) rotate(2deg);
+    transition: transform .55s cubic-bezier(.2,.85,.3,1.15), opacity .45s ease;
+  }
+  .stage.drawn .result-card{
+    opacity:1;
+    pointer-events:auto;
+    transform:translateY(0) scale(1) rotate(0deg);
+  }
+  .result-card::after{
+    content:'';
+    position:absolute;
+    inset:9px;
+    border:1.5px dashed rgba(150,135,123,.32);
+    border-radius:10px;
+    pointer-events:none;
+  }
+
+  .prompt{
+    margin:0;
+    font-family:'Gowun Batang', serif;
+    font-size:17px;
+    font-weight:700;
+    line-height:2;
+    color:var(--ink);
+    text-align:center;
+    word-break:keep-all;
+    overflow-wrap:break-word;
+  }
+  .highlight{
+    background-image: linear-gradient(100deg,
+      rgba(255,214,92,0) 0%,
+      rgba(255,214,92,.62) 6%,
+      rgba(255,214,92,.62) 92%,
+      rgba(255,214,92,0) 100%);
+    background-repeat: no-repeat;
+    background-size: 100% 0.55em;
+    background-position: 0 82%;
+    -webkit-box-decoration-break: clone;
+    box-decoration-break: clone;
+    padding: 0 3px;
+  }
+
+  .date-mark{
+    position:absolute;
+    bottom:16px;
+    right:18px;
+    font-size:10px;
+    color:var(--ink-soft);
+    letter-spacing:.04em;
+    opacity:.75;
+  }
+
+  .already-note{
+    margin:8px auto 0;
+    font-size:12px;
+    color:var(--ink-soft);
+    max-width:260px;
+  }
+
+  .review-block{ margin:16px auto 0; max-width:280px; text-align:left; }
+  .review-label{ display:block; font-size:11px; letter-spacing:.06em; color:var(--ink-soft); margin-bottom:6px; }
+  .review-input{
+    width:100%; resize:vertical; min-height:56px;
+    border:1px solid rgba(122,114,100,.3); border-radius:10px;
+    background:var(--card); color:var(--ink);
+    font-family:'Noto Sans KR', sans-serif; font-size:13px; line-height:1.5;
+    padding:10px 12px;
+  }
+  .review-input:focus{ outline:none; border-color:var(--accent); }
+  .review-input::placeholder{ color:var(--ink-soft); opacity:.8; }
+  .review-actions{ display:flex; align-items:center; justify-content:flex-end; gap:10px; margin-top:8px; }
+  .review-status{ font-size:11px; color:var(--ink-soft); opacity:0; transition:opacity .3s ease; }
+  .review-status.show{ opacity:1; }
+  .review-save{
+    appearance:none; border:none; border-radius:999px; padding:6px 16px;
+    background:var(--accent); color:#fff;
+    font-family:'Noto Sans KR', sans-serif; font-size:12px; font-weight:500; cursor:pointer;
+  }
+  .review-save:hover{ opacity:.9; }
+
+  .review-display{
+    background: rgba(168,150,138,.12);
+    border-radius:12px;
+    padding:12px 14px;
+  }
+  .review-display-text{
+    margin:0;
+    font-family:'Gowun Batang', serif;
+    font-size:13px;
+    line-height:1.6;
+    color:var(--ink);
+  }
+  .review-display-actions{
+    display:flex;
+    justify-content:flex-end;
+    gap:14px;
+    margin-top:8px;
+  }
+  .review-link{
+    appearance:none;
+    background:none;
+    border:none;
+    font-family:'Noto Sans KR', sans-serif;
+    font-size:11px;
+    color:var(--ink-soft);
+    text-decoration:underline;
+    cursor:pointer;
+    padding:2px;
+  }
+  .review-link:hover{ color:var(--ink); }
+
+  .history-toggle{
+    appearance:none; background:none; border:none;
+    font-family:'Noto Sans KR', sans-serif;
+    font-size:12px; color:var(--ink-soft);
+    cursor:pointer; padding:8px 10px; margin-top:4px;
+    display:inline-flex; align-items:center; gap:4px;
+  }
+  .history-toggle:hover{ color:var(--ink); }
+  .history-toggle .chev{ font-size:10px; transition:transform .25s ease; display:inline-block; }
+  .history-toggle.open .chev{ transform:rotate(180deg); }
+
+  .history{ margin-top:8px; text-align:left; border-top:1px solid rgba(122,114,100,.2); padding-top:10px; }
+  .history-row{ display:flex; gap:8px; padding:7px 2px; font-size:13px; align-items:flex-start; }
+  .history-row + .history-row{ border-top:1px dotted rgba(122,114,100,.2); }
+  .history-date{ flex:0 0 auto; color:var(--ink-soft); font-size:11px; padding-top:2px; white-space:nowrap; }
+  .history-msg{ font-family:'Gowun Batang', serif; }
+  .history-review{ display:block; margin-top:3px; font-size:12px; color:var(--ink-soft); font-style:italic; }
+  .history-empty{ font-size:12px; color:var(--ink-soft); }
+
+  .history-pager{ display:flex; align-items:center; justify-content:center; gap:14px; margin-top:10px; }
+  .pager-btn{
+    appearance:none; border:1px solid rgba(150,135,123,.35); background:var(--card); color:var(--ink-soft);
+    width:26px; height:26px; border-radius:50%; font-size:14px; line-height:1; cursor:pointer;
+    display:flex; align-items:center; justify-content:center;
+  }
+  .pager-btn:hover:not(:disabled){ color:var(--ink); border-color:var(--accent); }
+  .pager-btn:disabled{ opacity:.35; cursor:default; }
+  .pager-label{ font-size:12px; color:var(--ink-soft); min-width:36px; text-align:center; }
+
+  .error-note{ font-size:12px; color:#AE3B34; margin-top:10px; }
+
+  [hidden]{ display:none !important; }
+</style>
+</head>
+<body>
+
+<div class="card-app">
+  <p class="eyebrow">둘이서 오늘의 카드</p>
+  <h1 id="dateLabel">-</h1>
+  <div class="rule"></div>
+
+  <div class="stage" id="stage">
+    <div class="deck-shadow"><span></span><span></span></div>
+    <div class="deck-top" id="deckTop" role="button" tabindex="0" aria-label="카드 한 장 뽑기">
+      <div class="deck-heart">
+        <svg viewBox="0 0 100 90" width="112" height="101" aria-hidden="true">
+          <path d="M50 82 C20 60 4 40 4 23 C4 9 15 -1 29 2 C40 4.5 47 12 50 20 C53 12 60 4.5 71 2 C85 -1 96 9 96 23 C96 40 80 60 50 82 Z" fill="#F27CA0"/>
+        </svg>
+        <span class="tab-text">두근!</span>
+      </div>
+    </div>
+    <div class="result-card" id="resultCard" role="button" tabindex="0" aria-label="카드 뒤집기">
+      <p class="prompt"><span class="highlight" id="promptText"></span></p>
+      <span class="date-mark" id="dateMark"></span>
+    </div>
+  </div>
+
+  <p class="already-note" id="alreadyNote" hidden>오늘 카드는 이미 뽑았어<br>내일 새 카드가 기다리고 있어.</p>
+  <p class="error-note" id="errorNote" hidden>연결이 원활하지 않아. 새로고침해서 다시 시도해봐.</p>
+
+  <div class="review-block" id="reviewBlock" hidden>
+    <label class="review-label">오늘 카드 후기</label>
+
+    <div class="review-form" id="reviewForm">
+      <textarea id="reviewInput" class="review-input" rows="3" maxlength="200" placeholder="오늘의 한마디"></textarea>
+      <div class="review-actions">
+        <span class="review-status" id="reviewStatus"></span>
+        <button class="review-save" id="reviewSave" type="button">저장</button>
+      </div>
+    </div>
+
+    <div class="review-display" id="reviewDisplay" hidden>
+      <p class="review-display-text" id="reviewDisplayText"></p>
+      <div class="review-display-actions">
+        <button class="review-link" id="reviewEditBtn" type="button">수정하기</button>
+        <button class="review-link" id="reviewDeleteBtn" type="button">삭제하기</button>
+      </div>
+    </div>
+  </div>
+
+  <button class="history-toggle" id="historyToggle" type="button">
+    <span>지난 카드 보기</span><span class="chev">▾</span>
+  </button>
+  <div class="history" id="historyList" hidden></div>
+  <div class="history-pager" id="historyPager" hidden>
+    <button class="pager-btn" id="pagerPrev" type="button" aria-label="이전 페이지">‹</button>
+    <span class="pager-label" id="pagerLabel">1 / 1</span>
+    <button class="pager-btn" id="pagerNext" type="button" aria-label="다음 페이지">›</button>
+  </div>
+</div>
+
+<script>
+(function(){
+  const stage = document.getElementById('stage');
+  const deckTop = document.getElementById('deckTop');
+  const resultCard = document.getElementById('resultCard');
+  const promptText = document.getElementById('promptText');
+  const dateMark = document.getElementById('dateMark');
+  const dateLabel = document.getElementById('dateLabel');
+  const alreadyNote = document.getElementById('alreadyNote');
+  const errorNote = document.getElementById('errorNote');
+  const reviewBlock = document.getElementById('reviewBlock');
+  const reviewForm = document.getElementById('reviewForm');
+  const reviewInput = document.getElementById('reviewInput');
+  const reviewSave = document.getElementById('reviewSave');
+  const reviewStatus = document.getElementById('reviewStatus');
+  const reviewDisplay = document.getElementById('reviewDisplay');
+  const reviewDisplayText = document.getElementById('reviewDisplayText');
+  const reviewEditBtn = document.getElementById('reviewEditBtn');
+  const reviewDeleteBtn = document.getElementById('reviewDeleteBtn');
+  const historyToggle = document.getElementById('historyToggle');
+  const historyList = document.getElementById('historyList');
+  const historyPager = document.getElementById('historyPager');
+  const pagerPrev = document.getElementById('pagerPrev');
+  const pagerNext = document.getElementById('pagerNext');
+  const pagerLabel = document.getElementById('pagerLabel');
+
+  const DOW = ['일','월','화','수','목','금','토'];
+  let todaysCardText = null;
+  let todaysReview = '';
+  let historyPage = 1;
+
+  function pad(n){ return n.toString().padStart(2,'0'); }
+  function formatFull(dateStr){
+    const d = new Date(dateStr + 'T00:00:00');
+    return `${d.getFullYear()}년 ${d.getMonth()+1}월 ${d.getDate()}일 (${DOW[d.getDay()]})`;
+  }
+  function formatShort(dateStr){
+    const d = new Date(dateStr + 'T00:00:00');
+    return `${pad(d.getMonth()+1)}.${pad(d.getDate())}`;
+  }
+
+  async function fetchJSON(url, options){
+    const res = await fetch(url, options);
+    if(!res.ok) throw new Error('request_failed');
+    return res.json();
+  }
+
+  function showCard(text, dateStr, animate){
+    promptText.textContent = text;
+    dateMark.textContent = formatShort(dateStr);
+    if(animate){
+      requestAnimationFrame(()=>{ stage.classList.add('drawn'); });
+    }else{
+      stage.classList.add('drawn');
+    }
+  }
+
+  function flipToCover(){ stage.classList.remove('drawn'); }
+  function flipToCard(dateStr){
+    if(todaysCardText !== null){
+      promptText.textContent = todaysCardText;
+      dateMark.textContent = formatShort(dateStr);
+    }
+    stage.classList.add('drawn');
+  }
+
+  async function loadHistory(page){
+    try{
+      const data = await fetchJSON(`/api/history?page=${page}`);
+      renderHistory(data);
+    }catch(e){
+      // 히스토리 로딩 실패는 조용히 무시 (핵심 기능 아님)
+    }
+  }
+
+  function renderHistory(data){
+    historyPage = data.page;
+    historyList.innerHTML = '';
+    if(data.items.length === 0){
+      const empty = document.createElement('p');
+      empty.className = 'history-empty';
+      empty.textContent = '아직 지난 카드가 없어. 매일 하나씩 쌓일 거야.';
+      historyList.appendChild(empty);
+      historyPager.hidden = true;
+      return;
+    }
+    data.items.forEach(item => {
+      const row = document.createElement('div');
+      row.className = 'history-row';
+      const dt = document.createElement('span');
+      dt.className = 'history-date';
+      dt.textContent = formatShort(item.date);
+      const msgWrap = document.createElement('span');
+      const msg = document.createElement('span');
+      msg.className = 'history-msg';
+      msg.textContent = item.text;
+      msgWrap.appendChild(msg);
+      if(item.review){
+        const rv = document.createElement('span');
+        rv.className = 'history-review';
+        rv.textContent = '“' + item.review + '”';
+        msgWrap.appendChild(rv);
+      }
+      row.appendChild(dt); row.appendChild(msgWrap);
+      historyList.appendChild(row);
+    });
+    historyPager.hidden = data.totalPages <= 1;
+    pagerLabel.textContent = `${data.page} / ${data.totalPages}`;
+    pagerPrev.disabled = data.page <= 1;
+    pagerNext.disabled = data.page >= data.totalPages;
+  }
+
+  historyToggle.addEventListener('click', () => {
+    const isOpen = !historyList.hidden;
+    historyList.hidden = isOpen;
+    if(isOpen){ historyPager.hidden = true; }
+    historyToggle.classList.toggle('open', !isOpen);
+    if(!isOpen){ loadHistory(1); }
+  });
+  pagerPrev.addEventListener('click', () => { if(historyPage > 1) loadHistory(historyPage - 1); });
+  pagerNext.addEventListener('click', () => { loadHistory(historyPage + 1); });
+
+  function showReviewMode(text){
+    if(text){
+      reviewForm.hidden = true;
+      reviewDisplay.hidden = false;
+      reviewDisplayText.textContent = text;
+    }else{
+      reviewForm.hidden = false;
+      reviewDisplay.hidden = true;
+      reviewInput.value = '';
+    }
+  }
+
+  async function saveReviewText(text){
+    await fetchJSON('/api/review', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ text })
+    });
+  }
+
+  reviewSave.addEventListener('click', async () => {
+    const text = reviewInput.value.trim();
+    if(!text) return;
+    try{
+      await saveReviewText(text);
+      todaysReview = text;
+      showReviewMode(text);
+      if(!historyList.hidden){ loadHistory(historyPage); }
+    }catch(e){
+      reviewStatus.textContent = '저장 실패';
+      reviewStatus.classList.add('show');
+      setTimeout(() => { reviewStatus.classList.remove('show'); }, 1800);
+    }
+  });
+
+  reviewEditBtn.addEventListener('click', () => {
+    reviewInput.value = reviewDisplayText.textContent;
+    reviewForm.hidden = false;
+    reviewDisplay.hidden = true;
+    reviewInput.focus();
+  });
+
+  reviewDeleteBtn.addEventListener('click', async () => {
+    try{
+      await saveReviewText('');
+      todaysReview = '';
+      showReviewMode('');
+      if(!historyList.hidden){ loadHistory(historyPage); }
+    }catch(e){
+      reviewStatus.textContent = '삭제 실패';
+      reviewStatus.classList.add('show');
+      setTimeout(() => { reviewStatus.classList.remove('show'); }, 1800);
+    }
+  });
+
+  async function draw(){
+    const tabText = deckTop.querySelector('.tab-text');
+    if(tabText){
+      tabText.classList.add('tap');
+      setTimeout(() => tabText.classList.remove('tap'), 380);
+    }
+
+    if(todaysCardText !== null){
+      if(stage.classList.contains('drawn')){
+        flipToCover();
+        reviewBlock.hidden = true;
+        alreadyNote.hidden = true;
+      }else{
+        flipToCard(currentDate);
+        alreadyNote.hidden = false;
+        reviewBlock.hidden = false;
+        showReviewMode(todaysReview);
+      }
+      return;
+    }
+
+    try{
+      const data = await fetchJSON('/api/draw', { method: 'POST' });
+      todaysCardText = data.text;
+      todaysReview = '';
+      currentDate = data.date;
+      setTimeout(()=>{ showCard(data.text, data.date, true); }, 260);
+      stage.classList.add('drawn');
+      reviewBlock.hidden = false;
+      showReviewMode('');
+    }catch(e){
+      errorNote.hidden = false;
+    }
+  }
+
+  let currentDate = null;
+
+  deckTop.addEventListener('click', draw);
+  deckTop.addEventListener('keydown', (e) => {
+    if(e.key === 'Enter' || e.key === ' '){ e.preventDefault(); draw(); }
+  });
+  resultCard.addEventListener('click', draw);
+  resultCard.addEventListener('keydown', (e) => {
+    if(e.key === 'Enter' || e.key === ' '){ e.preventDefault(); draw(); }
+  });
+
+  async function init(){
+    try{
+      const status = await fetchJSON('/api/status');
+      currentDate = status.date;
+      dateLabel.textContent = formatFull(status.date);
+      if(status.drawn){
+        todaysCardText = status.text;
+        todaysReview = status.review || '';
+        // 이미 뽑았어도 기본은 닫힌 하트 상태로 시작. 탭하면 그때 캐시된 카드를 보여줌.
+      }
+    }catch(e){
+      errorNote.hidden = false;
+      dateLabel.textContent = '연결 오류';
+    }
+  }
+
+  init();
+})();
+</script>
+
+</body>
+</html>
