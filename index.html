@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>둘이서 오늘의 카드</title>
-<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='.9em' font-size='90'%3E%E2%9D%A4%EF%B8%8F%3C/text%3E%3C/svg%3E">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext x='50' y='52' font-size='72' text-anchor='middle' dominant-baseline='central'%3E%E2%9D%A4%EF%B8%8F%3C/text%3E%3C/svg%3E">
 <style>
   @import url('https://fonts.googleapis.com/css2?family=Gowun+Batang:wght@400;700&family=Noto+Sans+KR:wght@400;500;700&display=swap');
 
@@ -188,10 +188,10 @@
     max-width:260px;
   }
 
-  .review-block{ margin:16px auto 0; max-width:280px; text-align:left; }
+  .review-block{ margin:16px auto 0; text-align:left; }
   .review-label{ display:block; font-size:11px; letter-spacing:.06em; color:var(--ink-soft); margin-bottom:6px; }
   .review-input{
-    width:100%; resize:vertical; min-height:56px;
+    width:100%; resize:none; min-height:56px;
     border:1px solid rgba(122,114,100,.3); border-radius:10px;
     background:var(--card); color:var(--ink);
     font-family:'Noto Sans KR', sans-serif; font-size:13px; line-height:1.5;
@@ -203,9 +203,9 @@
   .review-status{ font-size:11px; color:var(--ink-soft); opacity:0; transition:opacity .3s ease; }
   .review-status.show{ opacity:1; }
   .review-save{
-    appearance:none; border:none; border-radius:999px; padding:6px 16px;
+    appearance:none; border:none; border-radius:999px; padding:4px 12px;
     background:var(--accent); color:#fff;
-    font-family:'Noto Sans KR', sans-serif; font-size:12px; font-weight:500; cursor:pointer;
+    font-family:'Noto Sans KR', sans-serif; font-size:11px; font-weight:500; cursor:pointer;
   }
   .review-save:hover{ opacity:.9; }
 
@@ -242,21 +242,19 @@
   .history{ margin-top:8px; text-align:left; }
   .history-row{
     display:flex;
-    flex-direction:row;
+    flex-direction:column;
     align-items:flex-start;
-    gap:8px;
-    border:1px solid rgba(168,150,138,.28);
-    border-radius:10px;
-    padding:9px 12px;
-    margin-bottom:7px;
+    gap:2px;
+    padding:9px 2px;
+    border-bottom:1px solid rgba(168,150,138,.22);
   }
-  .history-row:last-child{ margin-bottom:0; }
+  .history-row:last-child{ border-bottom:none; }
   .history-date{
     flex:0 0 auto;
-    font-size:11px;
+    font-size:9.5px;
     color:var(--ink-soft);
+    opacity:.85;
     white-space:nowrap;
-    padding-top:1px;
   }
   .history-msg{ font-family:'Gowun Batang', serif; font-size:13px; color:var(--ink); line-height:1.5; }
   .history-review{ display:block; margin-top:1px; font-size:12px; color:var(--ink-soft); font-style:italic; }
@@ -316,10 +314,10 @@
 
     <div class="review-display" id="reviewDisplay" hidden>
       <p class="review-display-text" id="reviewDisplayText"></p>
-      <div class="review-display-actions">
-        <button class="review-save" id="reviewEditBtn" type="button">수정</button>
-        <button class="review-save" id="reviewDeleteBtn" type="button">삭제</button>
-      </div>
+    </div>
+    <div class="review-display-actions" id="reviewDisplayActions" hidden>
+      <button class="review-save" id="reviewEditBtn" type="button">수정</button>
+      <button class="review-save" id="reviewDeleteBtn" type="button">삭제</button>
     </div>
   </div>
 
@@ -351,6 +349,7 @@
   const reviewStatus = document.getElementById('reviewStatus');
   const reviewDisplay = document.getElementById('reviewDisplay');
   const reviewDisplayText = document.getElementById('reviewDisplayText');
+  const reviewDisplayActions = document.getElementById('reviewDisplayActions');
   const reviewEditBtn = document.getElementById('reviewEditBtn');
   const reviewDeleteBtn = document.getElementById('reviewDeleteBtn');
   const historyToggle = document.getElementById('historyToggle');
@@ -464,10 +463,12 @@
     if(text){
       reviewForm.hidden = true;
       reviewDisplay.hidden = false;
+      reviewDisplayActions.hidden = false;
       reviewDisplayText.textContent = text;
     }else{
       reviewForm.hidden = false;
       reviewDisplay.hidden = true;
+      reviewDisplayActions.hidden = true;
       reviewInput.value = '';
     }
   }
@@ -499,6 +500,7 @@
     reviewInput.value = reviewDisplayText.textContent;
     reviewForm.hidden = false;
     reviewDisplay.hidden = true;
+    reviewDisplayActions.hidden = true;
     reviewInput.focus();
   });
 
