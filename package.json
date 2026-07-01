@@ -1,0 +1,16 @@
+{
+  "name": "couple-card",
+  "version": "1.0.0",
+  "description": "둘이서 오늘의 카드 - 하루 하나 대화/행동 카드 뽑기",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "engines": {
+    "node": ">=18"
+  },
+  "dependencies": {
+    "express": "^4.19.2",
+    "pg": "^8.11.5"
+  }
+}
