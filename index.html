@@ -224,21 +224,9 @@
   .review-display-actions{
     display:flex;
     justify-content:flex-end;
-    gap:14px;
+    gap:8px;
     margin-top:8px;
   }
-  .review-link{
-    appearance:none;
-    background:none;
-    border:none;
-    font-family:'Noto Sans KR', sans-serif;
-    font-size:11px;
-    color:var(--ink-soft);
-    text-decoration:underline;
-    cursor:pointer;
-    padding:2px;
-  }
-  .review-link:hover{ color:var(--ink); }
 
   .history-toggle{
     appearance:none; background:none; border:none;
@@ -251,12 +239,27 @@
   .history-toggle .chev{ font-size:10px; transition:transform .25s ease; display:inline-block; }
   .history-toggle.open .chev{ transform:rotate(180deg); }
 
-  .history{ margin-top:8px; text-align:left; border-top:1px solid rgba(122,114,100,.2); padding-top:10px; }
-  .history-row{ display:flex; gap:8px; padding:7px 2px; font-size:13px; align-items:flex-start; }
-  .history-row + .history-row{ border-top:1px dotted rgba(122,114,100,.2); }
-  .history-date{ flex:0 0 auto; color:var(--ink-soft); font-size:11px; padding-top:2px; white-space:nowrap; }
-  .history-msg{ font-family:'Gowun Batang', serif; }
-  .history-review{ display:block; margin-top:3px; font-size:12px; color:var(--ink-soft); font-style:italic; }
+  .history{ margin-top:8px; text-align:left; }
+  .history-row{
+    display:flex;
+    flex-direction:row;
+    align-items:flex-start;
+    gap:8px;
+    border:1px solid rgba(168,150,138,.28);
+    border-radius:10px;
+    padding:9px 12px;
+    margin-bottom:7px;
+  }
+  .history-row:last-child{ margin-bottom:0; }
+  .history-date{
+    flex:0 0 auto;
+    font-size:11px;
+    color:var(--ink-soft);
+    white-space:nowrap;
+    padding-top:1px;
+  }
+  .history-msg{ font-family:'Gowun Batang', serif; font-size:13px; color:var(--ink); line-height:1.5; }
+  .history-review{ display:block; margin-top:1px; font-size:12px; color:var(--ink-soft); font-style:italic; }
   .history-empty{ font-size:12px; color:var(--ink-soft); }
 
   .history-pager{ display:flex; align-items:center; justify-content:center; gap:14px; margin-top:10px; }
@@ -314,8 +317,8 @@
     <div class="review-display" id="reviewDisplay" hidden>
       <p class="review-display-text" id="reviewDisplayText"></p>
       <div class="review-display-actions">
-        <button class="review-link" id="reviewEditBtn" type="button">수정하기</button>
-        <button class="review-link" id="reviewDeleteBtn" type="button">삭제하기</button>
+        <button class="review-save" id="reviewEditBtn" type="button">수정</button>
+        <button class="review-save" id="reviewDeleteBtn" type="button">삭제</button>
       </div>
     </div>
   </div>
@@ -371,6 +374,10 @@
     const d = new Date(dateStr + 'T00:00:00');
     return `${pad(d.getMonth()+1)}.${pad(d.getDate())}`;
   }
+  function formatHistoryDate(dateStr){
+    const d = new Date(dateStr + 'T00:00:00');
+    return `${String(d.getFullYear()).slice(-2)}.${pad(d.getMonth()+1)}.${pad(d.getDate())}`;
+  }
 
   async function fetchJSON(url, options){
     const res = await fetch(url, options);
@@ -422,7 +429,7 @@
       row.className = 'history-row';
       const dt = document.createElement('span');
       dt.className = 'history-date';
-      dt.textContent = formatShort(item.date);
+      dt.textContent = formatHistoryDate(item.date);
       const msgWrap = document.createElement('span');
       const msg = document.createElement('span');
       msg.className = 'history-msg';
