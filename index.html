@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>♥️ 둘이서 오늘의 카드</title>
+<title>둘이서 오늘의 카드</title>
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='.9em' font-size='90'%3E%E2%9D%A4%EF%B8%8F%3C/text%3E%3C/svg%3E">
 <style>
   @import url('https://fonts.googleapis.com/css2?family=Gowun+Batang:wght@400;700&family=Noto+Sans+KR:wght@400;500;700&display=swap');
@@ -198,6 +198,7 @@
     padding:10px 12px;
   }
   .review-input:focus{ outline:none; border-color:var(--accent); }
+  .review-input::placeholder{ color:var(--ink-soft); opacity:.8; }
   .review-actions{ display:flex; align-items:center; justify-content:flex-end; gap:10px; margin-top:8px; }
   .review-status{ font-size:11px; color:var(--ink-soft); opacity:0; transition:opacity .3s ease; }
   .review-status.show{ opacity:1; }
@@ -209,10 +210,7 @@
   .review-save:hover{ opacity:.9; }
 
   .review-display{
-    border:1px solid rgba(122,114,100,.25);
-    border-radius:10px;
-    background:var(--card);
-    padding:12px 14px;
+    padding:2px 0;
   }
   .review-display-text{
     margin:0;
