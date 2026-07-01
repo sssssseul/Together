@@ -210,9 +210,9 @@
   .review-save:hover{ opacity:.9; }
 
   .review-display{
-    background: rgba(168,150,138,.12);
-    border-radius:12px;
-    padding:12px 14px;
+    border-top:1px solid rgba(168,150,138,.22);
+    border-bottom:1px solid rgba(168,150,138,.22);
+    padding:10px 2px;
   }
   .review-display-text{
     margin:0;
@@ -239,7 +239,12 @@
   .history-toggle .chev{ font-size:10px; transition:transform .25s ease; display:inline-block; }
   .history-toggle.open .chev{ transform:rotate(180deg); }
 
-  .history{ margin-top:8px; text-align:left; }
+  .history{
+    margin-top:8px;
+    text-align:left;
+    border-top:1px solid rgba(168,150,138,.22);
+    border-bottom:1px solid rgba(168,150,138,.22);
+  }
   .history-row{
     display:flex;
     flex-direction:column;
