@@ -3,7 +3,8 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>둘이서 오늘의 카드</title>
+<title>♥️ 둘이서 오늘의 카드</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='.9em' font-size='90'%3E%E2%9D%A4%EF%B8%8F%3C/text%3E%3C/svg%3E">
 <style>
   @import url('https://fonts.googleapis.com/css2?family=Gowun+Batang:wght@400;700&family=Noto+Sans+KR:wght@400;500;700&display=swap');
 
@@ -207,6 +208,38 @@
   }
   .review-save:hover{ opacity:.9; }
 
+  .review-display{
+    border:1px solid rgba(122,114,100,.25);
+    border-radius:10px;
+    background:var(--card);
+    padding:12px 14px;
+  }
+  .review-display-text{
+    margin:0;
+    font-family:'Gowun Batang', serif;
+    font-size:13px;
+    line-height:1.6;
+    color:var(--ink);
+  }
+  .review-display-actions{
+    display:flex;
+    justify-content:flex-end;
+    gap:14px;
+    margin-top:8px;
+  }
+  .review-link{
+    appearance:none;
+    background:none;
+    border:none;
+    font-family:'Noto Sans KR', sans-serif;
+    font-size:11px;
+    color:var(--ink-soft);
+    text-decoration:underline;
+    cursor:pointer;
+    padding:2px;
+  }
+  .review-link:hover{ color:var(--ink); }
+
   .history-toggle{
     appearance:none; background:none; border:none;
     font-family:'Noto Sans KR', sans-serif;
@@ -268,11 +301,22 @@
   <p class="error-note" id="errorNote" hidden>연결이 원활하지 않아. 새로고침해서 다시 시도해봐.</p>
 
   <div class="review-block" id="reviewBlock" hidden>
-    <label class="review-label" for="reviewInput">오늘 카드 후기</label>
-    <textarea id="reviewInput" class="review-input" rows="3" maxlength="200" placeholder="오늘의 한마디"></textarea>
-    <div class="review-actions">
-      <span class="review-status" id="reviewStatus"></span>
-      <button class="review-save" id="reviewSave" type="button">저장</button>
+    <label class="review-label">오늘 카드 후기</label>
+
+    <div class="review-form" id="reviewForm">
+      <textarea id="reviewInput" class="review-input" rows="3" maxlength="200" placeholder="오늘의 한마디"></textarea>
+      <div class="review-actions">
+        <span class="review-status" id="reviewStatus"></span>
+        <button class="review-save" id="reviewSave" type="button">저장</button>
+      </div>
+    </div>
+
+    <div class="review-display" id="reviewDisplay" hidden>
+      <p class="review-display-text" id="reviewDisplayText"></p>
+      <div class="review-display-actions">
+        <button class="review-link" id="reviewEditBtn" type="button">수정하기</button>
+        <button class="review-link" id="reviewDeleteBtn" type="button">삭제하기</button>
+      </div>
     </div>
   </div>
 
@@ -298,9 +342,14 @@
   const alreadyNote = document.getElementById('alreadyNote');
   const errorNote = document.getElementById('errorNote');
   const reviewBlock = document.getElementById('reviewBlock');
+  const reviewForm = document.getElementById('reviewForm');
   const reviewInput = document.getElementById('reviewInput');
   const reviewSave = document.getElementById('reviewSave');
   const reviewStatus = document.getElementById('reviewStatus');
+  const reviewDisplay = document.getElementById('reviewDisplay');
+  const reviewDisplayText = document.getElementById('reviewDisplayText');
+  const reviewEditBtn = document.getElementById('reviewEditBtn');
+  const reviewDeleteBtn = document.getElementById('reviewDeleteBtn');
   const historyToggle = document.getElementById('historyToggle');
   const historyList = document.getElementById('historyList');
   const historyPager = document.getElementById('historyPager');
@@ -403,21 +452,56 @@
   pagerPrev.addEventListener('click', () => { if(historyPage > 1) loadHistory(historyPage - 1); });
   pagerNext.addEventListener('click', () => { loadHistory(historyPage + 1); });
 
+  function showReviewMode(text){
+    if(text){
+      reviewForm.hidden = true;
+      reviewDisplay.hidden = false;
+      reviewDisplayText.textContent = text;
+    }else{
+      reviewForm.hidden = false;
+      reviewDisplay.hidden = true;
+      reviewInput.value = '';
+    }
+  }
+
+  async function saveReviewText(text){
+    await fetchJSON('/api/review', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ text })
+    });
+  }
+
   reviewSave.addEventListener('click', async () => {
     const text = reviewInput.value.trim();
+    if(!text) return;
     try{
-      await fetchJSON('/api/review', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ text })
-      });
-      reviewStatus.textContent = text ? '저장됐어' : '지웠어';
-      reviewStatus.classList.add('show');
-      setTimeout(() => { reviewStatus.classList.remove('show'); }, 1800);
+      await saveReviewText(text);
+      showReviewMode(text);
       if(!historyList.hidden){ loadHistory(historyPage); }
     }catch(e){
       reviewStatus.textContent = '저장 실패';
       reviewStatus.classList.add('show');
+      setTimeout(() => { reviewStatus.classList.remove('show'); }, 1800);
+    }
+  });
+
+  reviewEditBtn.addEventListener('click', () => {
+    reviewInput.value = reviewDisplayText.textContent;
+    reviewForm.hidden = false;
+    reviewDisplay.hidden = true;
+    reviewInput.focus();
+  });
+
+  reviewDeleteBtn.addEventListener('click', async () => {
+    try{
+      await saveReviewText('');
+      showReviewMode('');
+      if(!historyList.hidden){ loadHistory(historyPage); }
+    }catch(e){
+      reviewStatus.textContent = '삭제 실패';
+      reviewStatus.classList.add('show');
+      setTimeout(() => { reviewStatus.classList.remove('show'); }, 1800);
     }
   });
 
@@ -441,6 +525,7 @@
       setTimeout(()=>{ showCard(data.text, data.date, true); }, 260);
       stage.classList.add('drawn');
       reviewBlock.hidden = false;
+      showReviewMode('');
     }catch(e){
       errorNote.hidden = false;
     }
@@ -467,7 +552,7 @@
         showCard(status.text, status.date, false);
         alreadyNote.hidden = false;
         reviewBlock.hidden = false;
-        if(status.review){ reviewInput.value = status.review; }
+        showReviewMode(status.review || '');
       }
     }catch(e){
       errorNote.hidden = false;
