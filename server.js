@@ -31,9 +31,13 @@ async function initDb() {
       date TEXT PRIMARY KEY,
       card_index INTEGER NOT NULL,
       review TEXT,
+      photo1 TEXT,
+      photo2 TEXT,
       drawn_at TIMESTAMPTZ NOT NULL DEFAULT now()
     );
   `);
+  await pool.query(`ALTER TABLE couple_draws ADD COLUMN IF NOT EXISTS photo1 TEXT;`);
+  await pool.query(`ALTER TABLE couple_draws ADD COLUMN IF NOT EXISTS photo2 TEXT;`);
   await pool.query(`
     CREATE TABLE IF NOT EXISTS couple_state (
       id INTEGER PRIMARY KEY DEFAULT 1,
@@ -67,7 +71,7 @@ async function pickNextIndex() {
   return chosen;
 }
 
-app.use(express.json());
+app.use(express.json({ limit: '8mb' }));
 app.get('/', (req, res) => {
   res.sendFile(path.join(__dirname, 'index.html'));
 });
@@ -76,7 +80,7 @@ app.get('/', (req, res) => {
 app.get('/api/status', async (req, res) => {
   try {
     const today = todayStrKST();
-    const r = await pool.query('SELECT card_index, review FROM couple_draws WHERE date = $1', [today]);
+    const r = await pool.query('SELECT card_index, review, photo1, photo2 FROM couple_draws WHERE date = $1', [today]);
     if (r.rowCount === 0) {
       return res.json({ date: today, drawn: false });
     }
@@ -85,7 +89,8 @@ app.get('/api/status', async (req, res) => {
       date: today,
       drawn: true,
       text: CARDS[row.card_index].text,
-      review: row.review || ''
+      review: row.review || '',
+      photos: [row.photo1, row.photo2].filter(Boolean)
     });
   } catch (err) {
     console.error(err);
@@ -113,14 +118,33 @@ app.post('/api/draw', async (req, res) => {
   }
 });
 
-// 오늘 카드 후기 저장
+// 오늘 카드 후기 저장 (텍스트 + 사진 최대 2장)
 app.post('/api/review', async (req, res) => {
   try {
     const today = todayStrKST();
+    // 과거 카드 수정용(임시 기능): body.date가 유효한 YYYY-MM-DD면 그 날짜를, 없으면 오늘 날짜를 대상으로 함
+    const bodyDate = req.body && req.body.date;
+    const targetDate = (typeof bodyDate === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(bodyDate)) ? bodyDate : today;
+
     const text = (req.body && typeof req.body.text === 'string') ? req.body.text.slice(0, 200) : '';
+    const photosInput = Array.isArray(req.body && req.body.photos) ? req.body.photos.slice(0, 2) : [];
+
+    // 사진은 data URL(base64) 형태만 허용, 개당 3MB 넘으면 거절
+    for (const p of photosInput) {
+      if (typeof p !== 'string' || !p.startsWith('data:image/')) {
+        return res.status(400).json({ error: 'invalid_photo' });
+      }
+      if (p.length > 3 * 1024 * 1024) {
+        return res.status(400).json({ error: 'photo_too_large' });
+      }
+    }
+
+    const photo1 = photosInput[0] || null;
+    const photo2 = photosInput[1] || null;
+
     const result = await pool.query(
-      'UPDATE couple_draws SET review = $1 WHERE date = $2',
-      [text, today]
+      'UPDATE couple_draws SET review = $1, photo1 = $2, photo2 = $3 WHERE date = $4',
+      [text, photo1, photo2, targetDate]
     );
     if (result.rowCount === 0) {
       return res.status(400).json({ error: 'not_drawn_yet' });
@@ -142,14 +166,15 @@ app.get('/api/history', async (req, res) => {
     const totalPages = Math.max(1, Math.ceil(total / PAGE_SIZE));
 
     const rowsRes = await pool.query(
-      'SELECT date, card_index, review FROM couple_draws ORDER BY date DESC LIMIT $1 OFFSET $2',
+      'SELECT date, card_index, review, photo1, photo2 FROM couple_draws ORDER BY date DESC LIMIT $1 OFFSET $2',
       [PAGE_SIZE, (page - 1) * PAGE_SIZE]
     );
 
     const items = rowsRes.rows.map(r => ({
       date: r.date,
       text: CARDS[r.card_index].text,
-      review: r.review || ''
+      review: r.review || '',
+      photos: [r.photo1, r.photo2].filter(Boolean)
     }));
 
     res.json({ page, totalPages, items });
