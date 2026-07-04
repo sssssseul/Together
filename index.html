@@ -228,7 +228,6 @@
   }
   .lightbox img{ max-width:100%; max-height:100%; border-radius:10px; box-shadow:0 12px 30px rgba(0,0,0,.4); }
 
-  /* TEMP-OFF: 과거 카드 수정 모달 스타일 - 나중에 이 블록 통째로 삭제
   .edit-modal{
     position:fixed; inset:0;
     background:rgba(20,15,12,.55);
@@ -261,10 +260,10 @@
     appearance:none; background:none; border:none;
     font-family:'Noto Sans KR', sans-serif; font-size:11px;
     color:var(--ink-soft); text-decoration:underline;
-    cursor:pointer; padding:2px; margin-top:4px;
+    cursor:pointer; padding:2px; margin-top:4px; margin-right:8px;
   }
-  .history-edit-btn:hover{ color:var(--ink); }
-  TEMP-OFF-END */
+  .history-edit-btn.seul{ color:#C9748F; }
+  .history-edit-btn.ji{ color:#5B7C99; }
 
 
   .review-actions{ display:flex; align-items:center; justify-content:flex-end; gap:10px; margin-top:8px; }
@@ -277,19 +276,50 @@
   }
   .review-save:hover{ opacity:.9; }
 
-  .review-display{
+  .author-picker{ display:flex; gap:8px; margin-bottom:8px; }
+  .author-btn{
+    appearance:none;
+    border:1.5px solid rgba(150,135,123,.35);
+    background:transparent;
+    color:var(--ink-soft);
+    font-family:'Noto Sans KR', sans-serif;
+    font-size:12px;
+    font-weight:500;
+    padding:5px 14px;
+    border-radius:999px;
+    cursor:pointer;
+  }
+  .author-btn[data-author="seul"].active{ background:#C9748F; border-color:#C9748F; color:#fff; }
+  .author-btn[data-author="ji"].active{ background:#5B7C99; border-color:#5B7C99; color:#fff; }
+
+  .review-author-tag{
+    display:inline-block;
+    font-size:11px;
+    font-weight:700;
+    padding:2px 9px;
+    border-radius:999px;
+    margin-bottom:6px;
+  }
+  .review-author-tag.seul{ background:rgba(201,116,143,.15); color:#C9748F; }
+  .review-author-tag.ji{ background:rgba(91,124,153,.15); color:#5B7C99; }
+
+  .review-entries{ margin-bottom:4px; }
+  .review-entry{
     border-top:1px solid rgba(168,150,138,.22);
     border-bottom:1px solid rgba(168,150,138,.22);
     padding:10px 2px;
+    margin-bottom:8px;
   }
-  .review-display-text{
+  .review-entry-text{
     margin:0;
     font-family:'Gowun Batang', serif;
     font-size:13px;
     line-height:1.6;
     color:var(--ink);
   }
-  .review-display-actions{
+  .review-entry-text.seul{ color:#C9748F; }
+  .review-entry-text.ji{ color:#5B7C99; }
+  .review-entry-actions{
     display:flex;
     justify-content:flex-end;
     gap:8px;
@@ -331,6 +361,8 @@
   }
   .history-msg{ font-family:'Gowun Batang', serif; font-size:13px; color:var(--ink); line-height:1.5; }
   .history-review{ display:block; margin-top:1px; font-size:12px; color:var(--ink-soft); font-style:italic; }
+  .history-review.seul{ color:#C9748F; }
+  .history-review.ji{ color:#5B7C99; }
   .history-empty{ font-size:12px; color:var(--ink-soft); }
 
   .history-pager{ display:flex; align-items:center; justify-content:center; gap:14px; margin-top:10px; }
@@ -377,7 +409,13 @@
   <div class="review-block" id="reviewBlock" hidden>
     <label class="review-label">오늘 카드 후기</label>
 
+    <div class="review-entries" id="reviewEntries"></div>
+
     <div class="review-form" id="reviewForm">
+      <div class="author-picker" id="authorPicker">
+        <button type="button" class="author-btn" data-author="seul">슬빵</button>
+        <button type="button" class="author-btn" data-author="ji">지빵</button>
+      </div>
       <textarea id="reviewInput" class="review-input" rows="3" maxlength="200" placeholder="오늘의 한마디"></textarea>
       <div class="photo-picker" id="photoPicker">
         <label class="photo-slot" id="photoSlot0">
@@ -398,22 +436,12 @@
         <button class="review-save" id="reviewSave" type="button">저장</button>
       </div>
     </div>
-
-    <div class="review-display" id="reviewDisplay" hidden>
-      <p class="review-display-text" id="reviewDisplayText"></p>
-      <div class="review-photos" id="reviewPhotos"></div>
-    </div>
-    <div class="review-display-actions" id="reviewDisplayActions" hidden>
-      <button class="review-save" id="reviewEditBtn" type="button">수정</button>
-      <button class="review-save" id="reviewDeleteBtn" type="button">삭제</button>
-    </div>
   </div>
 
   <div class="lightbox" id="lightbox" hidden>
     <img id="lightboxImg" alt="">
   </div>
 
-  <!-- TEMP-OFF: 과거 카드 수정 모달 - 사진 백필용, 나중에 이 블록 통째로 삭제
   <div class="edit-modal" id="editModal" hidden>
     <div class="edit-modal-box">
       <p class="edit-modal-date" id="editModalDate"></p>
@@ -438,7 +466,7 @@
       </div>
     </div>
   </div>
-  TEMP-OFF-END -->
+
 
 
   <button class="history-toggle" id="historyToggle" type="button">
@@ -463,21 +491,30 @@
   const alreadyNote = document.getElementById('alreadyNote');
   const errorNote = document.getElementById('errorNote');
   const reviewBlock = document.getElementById('reviewBlock');
+  const reviewEntries = document.getElementById('reviewEntries');
   const reviewForm = document.getElementById('reviewForm');
   const reviewInput = document.getElementById('reviewInput');
   const reviewSave = document.getElementById('reviewSave');
   const reviewStatus = document.getElementById('reviewStatus');
-  const reviewDisplay = document.getElementById('reviewDisplay');
-  const reviewDisplayText = document.getElementById('reviewDisplayText');
-  const reviewDisplayActions = document.getElementById('reviewDisplayActions');
-  const reviewEditBtn = document.getElementById('reviewEditBtn');
-  const reviewDeleteBtn = document.getElementById('reviewDeleteBtn');
-  const reviewPhotos = document.getElementById('reviewPhotos');
   const photoInputs = [document.getElementById('photoInput0'), document.getElementById('photoInput1')];
   const photoThumbs = [document.getElementById('photoThumb0'), document.getElementById('photoThumb1')];
   const photoRemoves = [document.getElementById('photoRemove0'), document.getElementById('photoRemove1')];
   const lightbox = document.getElementById('lightbox');
   const lightboxImg = document.getElementById('lightboxImg');
+  const authorBtns = Array.from(document.querySelectorAll('.author-btn'));
+
+  const AUTHORS = {
+    seul: { name: '슬빵' },
+    ji: { name: '지빵' }
+  };
+  let selectedAuthor = null;
+
+  function setSelectedAuthor(key){
+    selectedAuthor = key;
+    authorBtns.forEach(btn => {
+      btn.classList.toggle('active', btn.dataset.author === key);
+    });
+  }
 
   let photoState = [null, null];
 
@@ -556,18 +593,110 @@
     });
   });
 
-  function renderReviewPhotos(photos){
-    reviewPhotos.innerHTML = '';
-    (photos || []).forEach(src => {
-      const img = document.createElement('img');
-      img.src = src;
-      img.alt = '';
-      img.addEventListener('click', () => openLightbox(src));
-      reviewPhotos.appendChild(img);
+  function buildReviewEntryEl(author, entry){
+    const box = document.createElement('div');
+    box.className = 'review-entry';
+
+    const tag = document.createElement('span');
+    tag.className = 'review-author-tag ' + author;
+    tag.textContent = AUTHORS[author].name;
+    box.appendChild(tag);
+
+    const textEl = document.createElement('p');
+    textEl.className = 'review-entry-text ' + author;
+    textEl.textContent = entry.text;
+    box.appendChild(textEl);
+
+    if(entry.photos && entry.photos.length){
+      const photosWrap = document.createElement('div');
+      photosWrap.className = 'review-photos';
+      entry.photos.forEach(src => {
+        const img = document.createElement('img');
+        img.src = src;
+        img.alt = '';
+        img.addEventListener('click', () => openLightbox(src));
+        photosWrap.appendChild(img);
+      });
+      box.appendChild(photosWrap);
+    }
+
+    const actions = document.createElement('div');
+    actions.className = 'review-entry-actions';
+    const editBtn = document.createElement('button');
+    editBtn.className = 'review-save';
+    editBtn.type = 'button';
+    editBtn.textContent = '수정';
+    editBtn.addEventListener('click', () => startEditEntry(author, entry));
+    const delBtn = document.createElement('button');
+    delBtn.className = 'review-save';
+    delBtn.type = 'button';
+    delBtn.textContent = '삭제';
+    delBtn.addEventListener('click', () => deleteEntry(author));
+    actions.appendChild(editBtn);
+    actions.appendChild(delBtn);
+    box.appendChild(actions);
+
+    return box;
+  }
+
+  function renderReviewEntries(){
+    reviewEntries.innerHTML = '';
+    ['seul', 'ji'].forEach(author => {
+      const entry = todaysReviews[author];
+      if(entry){ reviewEntries.appendChild(buildReviewEntryEl(author, entry)); }
     });
   }
 
-  /* TEMP-OFF: 과거 카드 수정 모달 - 사진 백필용, 나중에 이 블록 통째로 삭제
+  function clearForm(){
+    reviewInput.value = '';
+    resetPhotoPicker();
+    setSelectedAuthor(null);
+  }
+
+  function startEditEntry(author, entry){
+    setSelectedAuthor(author);
+    reviewInput.value = entry.text || '';
+    photoState = [ (entry.photos && entry.photos[0]) || null, (entry.photos && entry.photos[1]) || null ];
+    renderPhotoSlot(0);
+    renderPhotoSlot(1);
+    reviewInput.focus();
+  }
+
+  async function deleteEntry(author){
+    try{
+      await fetchJSON('/api/review', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ author, text: '', photos: [] })
+      });
+      delete todaysReviews[author];
+      renderReviewEntries();
+      if(selectedAuthor === author) clearForm();
+      if(!historyList.hidden){ loadHistory(historyPage); }
+    }catch(e){
+      reviewStatus.textContent = '삭제 실패';
+      reviewStatus.classList.add('show');
+      setTimeout(() => { reviewStatus.classList.remove('show'); }, 1800);
+    }
+  }
+
+  authorBtns.forEach(btn => {
+    btn.addEventListener('click', () => {
+      const author = btn.dataset.author;
+      setSelectedAuthor(author);
+      const existing = todaysReviews[author];
+      if(existing){
+        reviewInput.value = existing.text || '';
+        photoState = [ (existing.photos && existing.photos[0]) || null, (existing.photos && existing.photos[1]) || null ];
+      }else{
+        reviewInput.value = '';
+        photoState = [null, null];
+      }
+      renderPhotoSlot(0);
+      renderPhotoSlot(1);
+    });
+  });
+
   const editModal = document.getElementById('editModal');
   const editModalDate = document.getElementById('editModalDate');
   const editModalInput = document.getElementById('editModalInput');
@@ -578,6 +707,7 @@
   const editPhotoRemoves = [document.getElementById('editPhotoRemove0'), document.getElementById('editPhotoRemove1')];
   let editPhotoState = [null, null];
   let editingDate = null;
+  let editingAuthor = null;
 
   function renderEditPhotoSlot(i){
     if(editPhotoState[i]){
@@ -608,11 +738,13 @@
     });
   });
 
-  function openEditModal(item){
-    editingDate = item.date;
-    editModalDate.textContent = formatHistoryDate(item.date) + ' 카드 수정';
-    editModalInput.value = item.review || '';
-    editPhotoState = [ (item.photos && item.photos[0]) || null, (item.photos && item.photos[1]) || null ];
+  // item: { date }, author: 'seul'|'ji', entry: {text, photos} 또는 없으면 신규 작성
+  function openEditModal(date, author, entry){
+    editingDate = date;
+    editingAuthor = author;
+    editModalDate.textContent = formatHistoryDate(date) + ' · ' + AUTHORS[author].name + ' 후기 ' + (entry ? '수정' : '추가');
+    editModalInput.value = (entry && entry.text) || '';
+    editPhotoState = [ (entry && entry.photos && entry.photos[0]) || null, (entry && entry.photos && entry.photos[1]) || null ];
     renderEditPhotoSlot(0);
     renderEditPhotoSlot(1);
     editModal.hidden = false;
@@ -620,19 +752,20 @@
   function closeEditModal(){
     editModal.hidden = true;
     editingDate = null;
+    editingAuthor = null;
   }
   editModalCancel.addEventListener('click', closeEditModal);
   editModal.addEventListener('click', (e) => { if(e.target === editModal) closeEditModal(); });
 
   editModalSave.addEventListener('click', async () => {
-    if(!editingDate) return;
+    if(!editingDate || !editingAuthor) return;
     const text = editModalInput.value.trim();
     const photos = editPhotoState.filter(Boolean);
     try{
       await fetchJSON('/api/review', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ date: editingDate, text, photos })
+        body: JSON.stringify({ date: editingDate, author: editingAuthor, text, photos })
       });
       closeEditModal();
       loadHistory(historyPage);
@@ -640,7 +773,6 @@
       alert('저장 실패, 다시 시도해줘');
     }
   });
-  TEMP-OFF-END */
 
 
   const historyToggle = document.getElementById('historyToggle');
@@ -652,7 +784,7 @@
 
   const DOW = ['일','월','화','수','목','금','토'];
   let todaysCardText = null;
-  let todaysReview = { text: '', photos: [] };
+  let todaysReviews = {};
   let historyPage = 1;
 
   function pad(n){ return n.toString().padStart(2,'0'); }
@@ -725,33 +857,39 @@
       msg.className = 'history-msg';
       msg.textContent = item.text;
       msgWrap.appendChild(msg);
-      if(item.review){
-        const rv = document.createElement('span');
-        rv.className = 'history-review';
-        rv.textContent = '“' + item.review + '”';
-        msgWrap.appendChild(rv);
-      }
-      if(item.photos && item.photos.length){
-        const photosWrap = document.createElement('span');
-        photosWrap.className = 'history-photos';
-        item.photos.forEach(src => {
-          const img = document.createElement('img');
-          img.src = src;
-          img.alt = '';
-          img.addEventListener('click', (e) => { e.stopPropagation(); openLightbox(src); });
-          photosWrap.appendChild(img);
+      if(item.reviews){
+        ['seul', 'ji'].forEach(author => {
+          const entry = item.reviews[author];
+          if(!entry) return;
+          const rv = document.createElement('span');
+          rv.className = 'history-review ' + author;
+          rv.textContent = '[' + AUTHORS[author].name + '] “' + entry.text + '”';
+          msgWrap.appendChild(rv);
+          if(entry.photos && entry.photos.length){
+            const photosWrap = document.createElement('span');
+            photosWrap.className = 'history-photos';
+            entry.photos.forEach(src => {
+              const img = document.createElement('img');
+              img.src = src;
+              img.alt = '';
+              img.addEventListener('click', (e) => { e.stopPropagation(); openLightbox(src); });
+              photosWrap.appendChild(img);
+            });
+            msgWrap.appendChild(photosWrap);
+          }
         });
-        msgWrap.appendChild(photosWrap);
       }
-      /* TEMP-OFF: 과거 카드 수정 버튼 - 나중에 이 블록 삭제
-      const editBtn = document.createElement('button');
-      editBtn.className = 'history-edit-btn';
-      editBtn.type = 'button';
-      editBtn.textContent = '수정';
-      editBtn.addEventListener('click', (e) => { e.stopPropagation(); openEditModal(item); });
-      msgWrap.appendChild(document.createElement('br'));
-      msgWrap.appendChild(editBtn);
-      TEMP-OFF-END */
+      const editWrap = document.createElement('div');
+      ['seul', 'ji'].forEach(author => {
+        const entry = item.reviews && item.reviews[author];
+        const editBtn = document.createElement('button');
+        editBtn.className = 'history-edit-btn ' + author;
+        editBtn.type = 'button';
+        editBtn.textContent = AUTHORS[author].name + (entry ? ' 수정' : ' 추가');
+        editBtn.addEventListener('click', (e) => { e.stopPropagation(); openEditModal(item.date, author, entry); });
+        editWrap.appendChild(editBtn);
+      });
+      msgWrap.appendChild(editWrap);
       row.appendChild(dt); row.appendChild(msgWrap);
       historyList.appendChild(row);
     });
@@ -771,70 +909,28 @@
   pagerPrev.addEventListener('click', () => { if(historyPage > 1) loadHistory(historyPage - 1); });
   pagerNext.addEventListener('click', () => { loadHistory(historyPage + 1); });
 
-  function showReviewMode(review){
-    const text = review && review.text ? review.text : '';
-    const photos = review && review.photos ? review.photos : [];
-    if(text || photos.length){
-      reviewForm.hidden = true;
-      reviewDisplay.hidden = false;
-      reviewDisplayActions.hidden = false;
-      reviewDisplayText.textContent = text;
-      renderReviewPhotos(photos);
-    }else{
-      reviewForm.hidden = false;
-      reviewDisplay.hidden = true;
-      reviewDisplayActions.hidden = true;
-      reviewInput.value = '';
-      resetPhotoPicker();
-    }
-  }
-
-  async function saveReviewData(text, photos){
-    await fetchJSON('/api/review', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ text, photos })
-    });
-  }
-
   reviewSave.addEventListener('click', async () => {
     const text = reviewInput.value.trim();
     const photos = photoState.filter(Boolean);
     if(!text && photos.length === 0) return;
+    if(!selectedAuthor){
+      reviewStatus.textContent = '누가 쓴 건지 먼저 골라줘';
+      reviewStatus.classList.add('show');
+      setTimeout(() => { reviewStatus.classList.remove('show'); }, 1800);
+      return;
+    }
     try{
-      await saveReviewData(text, photos);
-      todaysReview = { text, photos };
-      showReviewMode(todaysReview);
+      await fetchJSON('/api/review', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ author: selectedAuthor, text, photos })
+      });
+      todaysReviews[selectedAuthor] = { text, photos };
+      renderReviewEntries();
+      clearForm();
       if(!historyList.hidden){ loadHistory(historyPage); }
     }catch(e){
       reviewStatus.textContent = '저장 실패';
-      reviewStatus.classList.add('show');
-      setTimeout(() => { reviewStatus.classList.remove('show'); }, 1800);
-    }
-  });
-
-  reviewEditBtn.addEventListener('click', () => {
-    reviewInput.value = reviewDisplayText.textContent;
-    photoState = [
-      (todaysReview.photos && todaysReview.photos[0]) || null,
-      (todaysReview.photos && todaysReview.photos[1]) || null
-    ];
-    renderPhotoSlot(0);
-    renderPhotoSlot(1);
-    reviewForm.hidden = false;
-    reviewDisplay.hidden = true;
-    reviewDisplayActions.hidden = true;
-    reviewInput.focus();
-  });
-
-  reviewDeleteBtn.addEventListener('click', async () => {
-    try{
-      await saveReviewData('', []);
-      todaysReview = { text: '', photos: [] };
-      showReviewMode(todaysReview);
-      if(!historyList.hidden){ loadHistory(historyPage); }
-    }catch(e){
-      reviewStatus.textContent = '삭제 실패';
       reviewStatus.classList.add('show');
       setTimeout(() => { reviewStatus.classList.remove('show'); }, 1800);
     }
@@ -856,7 +952,8 @@
         flipToCard(currentDate);
         alreadyNote.hidden = false;
         reviewBlock.hidden = false;
-        showReviewMode(todaysReview);
+        renderReviewEntries();
+        clearForm();
       }
       return;
     }
@@ -864,12 +961,13 @@
     try{
       const data = await fetchJSON('/api/draw', { method: 'POST' });
       todaysCardText = data.text;
-      todaysReview = { text: '', photos: [] };
+      todaysReviews = {};
       currentDate = data.date;
       setTimeout(()=>{ showCard(data.text, data.date, true); }, 260);
       stage.classList.add('drawn');
       reviewBlock.hidden = false;
-      showReviewMode(todaysReview);
+      renderReviewEntries();
+      clearForm();
     }catch(e){
       errorNote.hidden = false;
     }
@@ -893,7 +991,7 @@
       dateLabel.textContent = formatFull(status.date);
       if(status.drawn){
         todaysCardText = status.text;
-        todaysReview = { text: status.review || '', photos: status.photos || [] };
+        todaysReviews = status.reviews || {};
         // 이미 뽑았어도 기본은 닫힌 하트 상태로 시작. 탭하면 그때 캐시된 카드를 보여줌.
       }
     }catch(e){
