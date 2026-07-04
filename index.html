@@ -199,6 +199,73 @@
   }
   .review-input:focus{ outline:none; border-color:var(--accent); }
   .review-input::placeholder{ color:var(--ink-soft); opacity:.8; }
+  .photo-picker{ display:flex; gap:8px; margin-top:8px; }
+  .photo-slot{
+    position:relative;
+    width:52px; height:52px;
+    border:1.5px dashed rgba(150,135,123,.4);
+    border-radius:10px;
+    display:flex; align-items:center; justify-content:center;
+    cursor:pointer; overflow:hidden; flex-shrink:0;
+  }
+  .photo-plus{ font-size:18px; color:var(--ink-soft); line-height:1; }
+  .photo-thumb{ width:100%; height:100%; object-fit:cover; }
+  .photo-remove{
+    position:absolute; top:2px; right:2px;
+    width:16px; height:16px; border-radius:50%;
+    border:none; background:rgba(0,0,0,.55); color:#fff;
+    font-size:11px; line-height:1; cursor:pointer;
+    display:flex; align-items:center; justify-content:center; padding:0;
+  }
+  .review-photos{ display:flex; gap:8px; margin-top:8px; }
+  .review-photos img{ width:52px; height:52px; object-fit:cover; border-radius:10px; cursor:pointer; }
+  .history-photos{ display:flex; gap:6px; margin-top:4px; }
+  .history-photos img{ width:40px; height:40px; object-fit:cover; border-radius:8px; cursor:pointer; }
+  .lightbox{
+    position:fixed; inset:0; background:rgba(20,15,12,.82);
+    display:flex; align-items:center; justify-content:center;
+    padding:24px; z-index:50; cursor:zoom-out;
+  }
+  .lightbox img{ max-width:100%; max-height:100%; border-radius:10px; box-shadow:0 12px 30px rgba(0,0,0,.4); }
+
+  /* TEMP: 과거 카드 수정 모달 스타일 - 나중에 이 블록 통째로 삭제 */
+  .edit-modal{
+    position:fixed; inset:0;
+    background:rgba(20,15,12,.55);
+    display:flex; align-items:center; justify-content:center;
+    padding:20px; z-index:60;
+  }
+  .edit-modal-box{
+    width:100%; max-width:340px;
+    background:var(--card);
+    border-radius:14px;
+    padding:18px;
+    box-shadow:0 16px 40px rgba(0,0,0,.25);
+  }
+  .edit-modal-date{
+    margin:0 0 8px;
+    font-size:12px;
+    color:var(--ink-soft);
+    letter-spacing:.04em;
+  }
+  .edit-modal-actions{
+    display:flex; justify-content:flex-end; gap:8px; margin-top:10px;
+  }
+  .review-link-btn{
+    appearance:none; background:none; border:none;
+    font-family:'Noto Sans KR', sans-serif; font-size:12px;
+    color:var(--ink-soft); cursor:pointer; padding:5px 8px;
+  }
+  .review-link-btn:hover{ color:var(--ink); }
+  .history-edit-btn{
+    appearance:none; background:none; border:none;
+    font-family:'Noto Sans KR', sans-serif; font-size:11px;
+    color:var(--ink-soft); text-decoration:underline;
+    cursor:pointer; padding:2px; margin-top:4px;
+  }
+  .history-edit-btn:hover{ color:var(--ink); }
+  /* /TEMP */
+
   .review-actions{ display:flex; align-items:center; justify-content:flex-end; gap:10px; margin-top:8px; }
   .review-status{ font-size:11px; color:var(--ink-soft); opacity:0; transition:opacity .3s ease; }
   .review-status.show{ opacity:1; }
@@ -311,6 +378,20 @@
 
     <div class="review-form" id="reviewForm">
       <textarea id="reviewInput" class="review-input" rows="3" maxlength="200" placeholder="오늘의 한마디"></textarea>
+      <div class="photo-picker" id="photoPicker">
+        <label class="photo-slot" id="photoSlot0">
+          <input type="file" accept="image/*" id="photoInput0" hidden>
+          <span class="photo-plus">+</span>
+          <img class="photo-thumb" id="photoThumb0" hidden alt="">
+          <button class="photo-remove" id="photoRemove0" type="button" hidden aria-label="사진 제거">×</button>
+        </label>
+        <label class="photo-slot" id="photoSlot1">
+          <input type="file" accept="image/*" id="photoInput1" hidden>
+          <span class="photo-plus">+</span>
+          <img class="photo-thumb" id="photoThumb1" hidden alt="">
+          <button class="photo-remove" id="photoRemove1" type="button" hidden aria-label="사진 제거">×</button>
+        </label>
+      </div>
       <div class="review-actions">
         <span class="review-status" id="reviewStatus"></span>
         <button class="review-save" id="reviewSave" type="button">저장</button>
@@ -319,12 +400,44 @@
 
     <div class="review-display" id="reviewDisplay" hidden>
       <p class="review-display-text" id="reviewDisplayText"></p>
+      <div class="review-photos" id="reviewPhotos"></div>
     </div>
     <div class="review-display-actions" id="reviewDisplayActions" hidden>
       <button class="review-save" id="reviewEditBtn" type="button">수정</button>
       <button class="review-save" id="reviewDeleteBtn" type="button">삭제</button>
     </div>
   </div>
+
+  <div class="lightbox" id="lightbox" hidden>
+    <img id="lightboxImg" alt="">
+  </div>
+
+  <!-- TEMP: 과거 카드 수정 모달 - 사진 백필용, 나중에 이 블록 통째로 삭제 -->
+  <div class="edit-modal" id="editModal" hidden>
+    <div class="edit-modal-box">
+      <p class="edit-modal-date" id="editModalDate"></p>
+      <textarea id="editModalInput" class="review-input" rows="3" maxlength="200" placeholder="오늘의 한마디"></textarea>
+      <div class="photo-picker" id="editPhotoPicker">
+        <label class="photo-slot" id="editPhotoSlot0">
+          <input type="file" accept="image/*" id="editPhotoInput0" hidden>
+          <span class="photo-plus">+</span>
+          <img class="photo-thumb" id="editPhotoThumb0" hidden alt="">
+          <button class="photo-remove" id="editPhotoRemove0" type="button" hidden aria-label="사진 제거">×</button>
+        </label>
+        <label class="photo-slot" id="editPhotoSlot1">
+          <input type="file" accept="image/*" id="editPhotoInput1" hidden>
+          <span class="photo-plus">+</span>
+          <img class="photo-thumb" id="editPhotoThumb1" hidden alt="">
+          <button class="photo-remove" id="editPhotoRemove1" type="button" hidden aria-label="사진 제거">×</button>
+        </label>
+      </div>
+      <div class="edit-modal-actions">
+        <button class="review-link-btn" id="editModalCancel" type="button">취소</button>
+        <button class="review-save" id="editModalSave" type="button">저장</button>
+      </div>
+    </div>
+  </div>
+  <!-- /TEMP -->
 
   <button class="history-toggle" id="historyToggle" type="button">
     <span>지난 카드 보기</span><span class="chev">▾</span>
@@ -357,6 +470,176 @@
   const reviewDisplayActions = document.getElementById('reviewDisplayActions');
   const reviewEditBtn = document.getElementById('reviewEditBtn');
   const reviewDeleteBtn = document.getElementById('reviewDeleteBtn');
+  const reviewPhotos = document.getElementById('reviewPhotos');
+  const photoInputs = [document.getElementById('photoInput0'), document.getElementById('photoInput1')];
+  const photoThumbs = [document.getElementById('photoThumb0'), document.getElementById('photoThumb1')];
+  const photoRemoves = [document.getElementById('photoRemove0'), document.getElementById('photoRemove1')];
+  const lightbox = document.getElementById('lightbox');
+  const lightboxImg = document.getElementById('lightboxImg');
+
+  let photoState = [null, null];
+
+  function openLightbox(src){
+    lightboxImg.src = src;
+    lightbox.hidden = false;
+  }
+  lightbox.addEventListener('click', () => {
+    lightbox.hidden = true;
+    lightboxImg.src = '';
+  });
+
+  function resizeImage(file, maxDim, quality){
+    maxDim = maxDim || 800;
+    quality = quality || 0.7;
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        const img = new Image();
+        img.onload = () => {
+          let w = img.width, h = img.height;
+          if(w > h){
+            if(w > maxDim){ h = Math.round(h * (maxDim / w)); w = maxDim; }
+          }else{
+            if(h > maxDim){ w = Math.round(w * (maxDim / h)); h = maxDim; }
+          }
+          const canvas = document.createElement('canvas');
+          canvas.width = w; canvas.height = h;
+          canvas.getContext('2d').drawImage(img, 0, 0, w, h);
+          resolve(canvas.toDataURL('image/jpeg', quality));
+        };
+        img.onerror = reject;
+        img.src = e.target.result;
+      };
+      reader.onerror = reject;
+      reader.readAsDataURL(file);
+    });
+  }
+
+  function renderPhotoSlot(i){
+    if(photoState[i]){
+      photoThumbs[i].src = photoState[i];
+      photoThumbs[i].hidden = false;
+      photoRemoves[i].hidden = false;
+    }else{
+      photoThumbs[i].src = '';
+      photoThumbs[i].hidden = true;
+      photoRemoves[i].hidden = true;
+    }
+  }
+
+  function resetPhotoPicker(){
+    photoState = [null, null];
+    renderPhotoSlot(0);
+    renderPhotoSlot(1);
+  }
+
+  [0, 1].forEach(i => {
+    photoInputs[i].addEventListener('change', async (e) => {
+      const file = e.target.files && e.target.files[0];
+      if(!file) return;
+      try{
+        const dataUrl = await resizeImage(file);
+        photoState[i] = dataUrl;
+        renderPhotoSlot(i);
+      }catch(err){
+        console.error('이미지 처리 실패', err);
+      }
+      photoInputs[i].value = '';
+    });
+    photoRemoves[i].addEventListener('click', (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      photoState[i] = null;
+      renderPhotoSlot(i);
+    });
+  });
+
+  function renderReviewPhotos(photos){
+    reviewPhotos.innerHTML = '';
+    (photos || []).forEach(src => {
+      const img = document.createElement('img');
+      img.src = src;
+      img.alt = '';
+      img.addEventListener('click', () => openLightbox(src));
+      reviewPhotos.appendChild(img);
+    });
+  }
+
+  // ===== TEMP: 과거 카드 수정 모달 - 사진 백필용, 나중에 이 블록 통째로 삭제 =====
+  const editModal = document.getElementById('editModal');
+  const editModalDate = document.getElementById('editModalDate');
+  const editModalInput = document.getElementById('editModalInput');
+  const editModalCancel = document.getElementById('editModalCancel');
+  const editModalSave = document.getElementById('editModalSave');
+  const editPhotoInputs = [document.getElementById('editPhotoInput0'), document.getElementById('editPhotoInput1')];
+  const editPhotoThumbs = [document.getElementById('editPhotoThumb0'), document.getElementById('editPhotoThumb1')];
+  const editPhotoRemoves = [document.getElementById('editPhotoRemove0'), document.getElementById('editPhotoRemove1')];
+  let editPhotoState = [null, null];
+  let editingDate = null;
+
+  function renderEditPhotoSlot(i){
+    if(editPhotoState[i]){
+      editPhotoThumbs[i].src = editPhotoState[i];
+      editPhotoThumbs[i].hidden = false;
+      editPhotoRemoves[i].hidden = false;
+    }else{
+      editPhotoThumbs[i].src = '';
+      editPhotoThumbs[i].hidden = true;
+      editPhotoRemoves[i].hidden = true;
+    }
+  }
+
+  [0, 1].forEach(i => {
+    editPhotoInputs[i].addEventListener('change', async (e) => {
+      const file = e.target.files && e.target.files[0];
+      if(!file) return;
+      try{
+        editPhotoState[i] = await resizeImage(file);
+        renderEditPhotoSlot(i);
+      }catch(err){ console.error('이미지 처리 실패', err); }
+      editPhotoInputs[i].value = '';
+    });
+    editPhotoRemoves[i].addEventListener('click', (e) => {
+      e.preventDefault(); e.stopPropagation();
+      editPhotoState[i] = null;
+      renderEditPhotoSlot(i);
+    });
+  });
+
+  function openEditModal(item){
+    editingDate = item.date;
+    editModalDate.textContent = formatHistoryDate(item.date) + ' 카드 수정';
+    editModalInput.value = item.review || '';
+    editPhotoState = [ (item.photos && item.photos[0]) || null, (item.photos && item.photos[1]) || null ];
+    renderEditPhotoSlot(0);
+    renderEditPhotoSlot(1);
+    editModal.hidden = false;
+  }
+  function closeEditModal(){
+    editModal.hidden = true;
+    editingDate = null;
+  }
+  editModalCancel.addEventListener('click', closeEditModal);
+  editModal.addEventListener('click', (e) => { if(e.target === editModal) closeEditModal(); });
+
+  editModalSave.addEventListener('click', async () => {
+    if(!editingDate) return;
+    const text = editModalInput.value.trim();
+    const photos = editPhotoState.filter(Boolean);
+    try{
+      await fetchJSON('/api/review', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ date: editingDate, text, photos })
+      });
+      closeEditModal();
+      loadHistory(historyPage);
+    }catch(e){
+      alert('저장 실패, 다시 시도해줘');
+    }
+  });
+  // ===== /TEMP =====
+
   const historyToggle = document.getElementById('historyToggle');
   const historyList = document.getElementById('historyList');
   const historyPager = document.getElementById('historyPager');
@@ -366,7 +649,7 @@
 
   const DOW = ['일','월','화','수','목','금','토'];
   let todaysCardText = null;
-  let todaysReview = '';
+  let todaysReview = { text: '', photos: [] };
   let historyPage = 1;
 
   function pad(n){ return n.toString().padStart(2,'0'); }
@@ -445,6 +728,27 @@
         rv.textContent = '“' + item.review + '”';
         msgWrap.appendChild(rv);
       }
+      if(item.photos && item.photos.length){
+        const photosWrap = document.createElement('span');
+        photosWrap.className = 'history-photos';
+        item.photos.forEach(src => {
+          const img = document.createElement('img');
+          img.src = src;
+          img.alt = '';
+          img.addEventListener('click', (e) => { e.stopPropagation(); openLightbox(src); });
+          photosWrap.appendChild(img);
+        });
+        msgWrap.appendChild(photosWrap);
+      }
+      // TEMP: 과거 카드 수정 버튼 - 나중에 이 블록 삭제
+      const editBtn = document.createElement('button');
+      editBtn.className = 'history-edit-btn';
+      editBtn.type = 'button';
+      editBtn.textContent = '수정';
+      editBtn.addEventListener('click', (e) => { e.stopPropagation(); openEditModal(item); });
+      msgWrap.appendChild(document.createElement('br'));
+      msgWrap.appendChild(editBtn);
+      // /TEMP
       row.appendChild(dt); row.appendChild(msgWrap);
       historyList.appendChild(row);
     });
@@ -464,35 +768,40 @@
   pagerPrev.addEventListener('click', () => { if(historyPage > 1) loadHistory(historyPage - 1); });
   pagerNext.addEventListener('click', () => { loadHistory(historyPage + 1); });
 
-  function showReviewMode(text){
-    if(text){
+  function showReviewMode(review){
+    const text = review && review.text ? review.text : '';
+    const photos = review && review.photos ? review.photos : [];
+    if(text || photos.length){
       reviewForm.hidden = true;
       reviewDisplay.hidden = false;
       reviewDisplayActions.hidden = false;
       reviewDisplayText.textContent = text;
+      renderReviewPhotos(photos);
     }else{
       reviewForm.hidden = false;
       reviewDisplay.hidden = true;
       reviewDisplayActions.hidden = true;
       reviewInput.value = '';
+      resetPhotoPicker();
     }
   }
 
-  async function saveReviewText(text){
+  async function saveReviewData(text, photos){
     await fetchJSON('/api/review', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ text })
+      body: JSON.stringify({ text, photos })
     });
   }
 
   reviewSave.addEventListener('click', async () => {
     const text = reviewInput.value.trim();
-    if(!text) return;
+    const photos = photoState.filter(Boolean);
+    if(!text && photos.length === 0) return;
     try{
-      await saveReviewText(text);
-      todaysReview = text;
-      showReviewMode(text);
+      await saveReviewData(text, photos);
+      todaysReview = { text, photos };
+      showReviewMode(todaysReview);
       if(!historyList.hidden){ loadHistory(historyPage); }
     }catch(e){
       reviewStatus.textContent = '저장 실패';
@@ -503,6 +812,12 @@
 
   reviewEditBtn.addEventListener('click', () => {
     reviewInput.value = reviewDisplayText.textContent;
+    photoState = [
+      (todaysReview.photos && todaysReview.photos[0]) || null,
+      (todaysReview.photos && todaysReview.photos[1]) || null
+    ];
+    renderPhotoSlot(0);
+    renderPhotoSlot(1);
     reviewForm.hidden = false;
     reviewDisplay.hidden = true;
     reviewDisplayActions.hidden = true;
@@ -511,9 +826,9 @@
 
   reviewDeleteBtn.addEventListener('click', async () => {
     try{
-      await saveReviewText('');
-      todaysReview = '';
-      showReviewMode('');
+      await saveReviewData('', []);
+      todaysReview = { text: '', photos: [] };
+      showReviewMode(todaysReview);
       if(!historyList.hidden){ loadHistory(historyPage); }
     }catch(e){
       reviewStatus.textContent = '삭제 실패';
@@ -546,12 +861,12 @@
     try{
       const data = await fetchJSON('/api/draw', { method: 'POST' });
       todaysCardText = data.text;
-      todaysReview = '';
+      todaysReview = { text: '', photos: [] };
       currentDate = data.date;
       setTimeout(()=>{ showCard(data.text, data.date, true); }, 260);
       stage.classList.add('drawn');
       reviewBlock.hidden = false;
-      showReviewMode('');
+      showReviewMode(todaysReview);
     }catch(e){
       errorNote.hidden = false;
     }
@@ -575,7 +890,7 @@
       dateLabel.textContent = formatFull(status.date);
       if(status.drawn){
         todaysCardText = status.text;
-        todaysReview = status.review || '';
+        todaysReview = { text: status.review || '', photos: status.photos || [] };
         // 이미 뽑았어도 기본은 닫힌 하트 상태로 시작. 탭하면 그때 캐시된 카드를 보여줌.
       }
     }catch(e){
