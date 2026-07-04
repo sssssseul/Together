@@ -228,7 +228,7 @@
   }
   .lightbox img{ max-width:100%; max-height:100%; border-radius:10px; box-shadow:0 12px 30px rgba(0,0,0,.4); }
 
-  /* TEMP: 과거 카드 수정 모달 스타일 - 나중에 이 블록 통째로 삭제 */
+  /* TEMP-OFF: 과거 카드 수정 모달 스타일 - 나중에 이 블록 통째로 삭제
   .edit-modal{
     position:fixed; inset:0;
     background:rgba(20,15,12,.55);
@@ -264,7 +264,8 @@
     cursor:pointer; padding:2px; margin-top:4px;
   }
   .history-edit-btn:hover{ color:var(--ink); }
-  /* /TEMP */
+  TEMP-OFF-END */
+
 
   .review-actions{ display:flex; align-items:center; justify-content:flex-end; gap:10px; margin-top:8px; }
   .review-status{ font-size:11px; color:var(--ink-soft); opacity:0; transition:opacity .3s ease; }
@@ -412,7 +413,7 @@
     <img id="lightboxImg" alt="">
   </div>
 
-  <!-- TEMP: 과거 카드 수정 모달 - 사진 백필용, 나중에 이 블록 통째로 삭제 
+  <!-- TEMP-OFF: 과거 카드 수정 모달 - 사진 백필용, 나중에 이 블록 통째로 삭제
   <div class="edit-modal" id="editModal" hidden>
     <div class="edit-modal-box">
       <p class="edit-modal-date" id="editModalDate"></p>
@@ -437,7 +438,8 @@
       </div>
     </div>
   </div>
-  -->
+  TEMP-OFF-END -->
+
 
   <button class="history-toggle" id="historyToggle" type="button">
     <span>지난 카드 보기</span><span class="chev">▾</span>
@@ -565,7 +567,7 @@
     });
   }
 
-  // ===== TEMP: 과거 카드 수정 모달 - 사진 백필용, 나중에 이 블록 통째로 삭제 =====
+  /* TEMP-OFF: 과거 카드 수정 모달 - 사진 백필용, 나중에 이 블록 통째로 삭제
   const editModal = document.getElementById('editModal');
   const editModalDate = document.getElementById('editModalDate');
   const editModalInput = document.getElementById('editModalInput');
@@ -637,8 +639,9 @@
     }catch(e){
       alert('저장 실패, 다시 시도해줘');
     }
-  }); 
-  // ===== /TEMP =====
+  });
+  TEMP-OFF-END */
+
 
   const historyToggle = document.getElementById('historyToggle');
   const historyList = document.getElementById('historyList');
@@ -740,7 +743,7 @@
         });
         msgWrap.appendChild(photosWrap);
       }
-      // TEMP: 과거 카드 수정 버튼 - 나중에 이 블록 삭제
+      /* TEMP-OFF: 과거 카드 수정 버튼 - 나중에 이 블록 삭제
       const editBtn = document.createElement('button');
       editBtn.className = 'history-edit-btn';
       editBtn.type = 'button';
@@ -748,7 +751,7 @@
       editBtn.addEventListener('click', (e) => { e.stopPropagation(); openEditModal(item); });
       msgWrap.appendChild(document.createElement('br'));
       msgWrap.appendChild(editBtn);
-      // /TEMP
+      TEMP-OFF-END */
       row.appendChild(dt); row.appendChild(msgWrap);
       historyList.appendChild(row);
     });
