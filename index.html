@@ -228,6 +228,7 @@
   }
   .lightbox img{ max-width:100%; max-height:100%; border-radius:10px; box-shadow:0 12px 30px rgba(0,0,0,.4); }
 
+  /* TEMP-OFF: 과거 카드 수정 모달 스타일 - 나중에 이 블록 통째로 삭제
   .edit-modal{
     position:fixed; inset:0;
     background:rgba(20,15,12,.55);
@@ -264,6 +265,7 @@
   }
   .history-edit-btn.seul{ color:#C9748F; }
   .history-edit-btn.ji{ color:#5B7C99; }
+  TEMP-OFF-END */
 
 
   .review-actions{ display:flex; align-items:center; justify-content:flex-end; gap:10px; margin-top:8px; }
@@ -442,6 +444,7 @@
     <img id="lightboxImg" alt="">
   </div>
 
+  <!-- TEMP-OFF: 과거 카드 수정 모달 - 사진 백필용, 나중에 이 블록 통째로 삭제
   <div class="edit-modal" id="editModal" hidden>
     <div class="edit-modal-box">
       <p class="edit-modal-date" id="editModalDate"></p>
@@ -466,6 +469,7 @@
       </div>
     </div>
   </div>
+  TEMP-OFF-END -->
 
 
 
@@ -607,19 +611,6 @@
     textEl.textContent = entry.text;
     box.appendChild(textEl);
 
-    if(entry.photos && entry.photos.length){
-      const photosWrap = document.createElement('div');
-      photosWrap.className = 'review-photos';
-      entry.photos.forEach(src => {
-        const img = document.createElement('img');
-        img.src = src;
-        img.alt = '';
-        img.addEventListener('click', () => openLightbox(src));
-        photosWrap.appendChild(img);
-      });
-      box.appendChild(photosWrap);
-    }
-
     const actions = document.createElement('div');
     actions.className = 'review-entry-actions';
     const editBtn = document.createElement('button');
@@ -641,10 +632,26 @@
 
   function renderReviewEntries(){
     reviewEntries.innerHTML = '';
+    const allPhotos = [];
     ['seul', 'ji'].forEach(author => {
       const entry = todaysReviews[author];
-      if(entry){ reviewEntries.appendChild(buildReviewEntryEl(author, entry)); }
+      if(entry){
+        reviewEntries.appendChild(buildReviewEntryEl(author, entry));
+        if(entry.photos && entry.photos.length){ allPhotos.push(...entry.photos); }
+      }
     });
+    if(allPhotos.length){
+      const photosWrap = document.createElement('div');
+      photosWrap.className = 'review-photos';
+      allPhotos.forEach(src => {
+        const img = document.createElement('img');
+        img.src = src;
+        img.alt = '';
+        img.addEventListener('click', () => openLightbox(src));
+        photosWrap.appendChild(img);
+      });
+      reviewEntries.appendChild(photosWrap);
+    }
   }
 
   function clearForm(){
@@ -697,6 +704,7 @@
     });
   });
 
+  /* TEMP-OFF: 과거 카드 수정 모달 - 사진 백필용, 나중에 이 블록 통째로 삭제
   const editModal = document.getElementById('editModal');
   const editModalDate = document.getElementById('editModalDate');
   const editModalInput = document.getElementById('editModalInput');
@@ -773,6 +781,7 @@
       alert('저장 실패, 다시 시도해줘');
     }
   });
+  TEMP-OFF-END */
 
 
   const historyToggle = document.getElementById('historyToggle');
@@ -858,6 +867,7 @@
       msg.textContent = item.text;
       msgWrap.appendChild(msg);
       if(item.reviews){
+        const allPhotos = [];
         ['seul', 'ji'].forEach(author => {
           const entry = item.reviews[author];
           if(!entry) return;
@@ -865,20 +875,22 @@
           rv.className = 'history-review ' + author;
           rv.textContent = '[' + AUTHORS[author].name + '] “' + entry.text + '”';
           msgWrap.appendChild(rv);
-          if(entry.photos && entry.photos.length){
-            const photosWrap = document.createElement('span');
-            photosWrap.className = 'history-photos';
-            entry.photos.forEach(src => {
-              const img = document.createElement('img');
-              img.src = src;
-              img.alt = '';
-              img.addEventListener('click', (e) => { e.stopPropagation(); openLightbox(src); });
-              photosWrap.appendChild(img);
-            });
-            msgWrap.appendChild(photosWrap);
-          }
+          if(entry.photos && entry.photos.length){ allPhotos.push(...entry.photos); }
         });
+        if(allPhotos.length){
+          const photosWrap = document.createElement('span');
+          photosWrap.className = 'history-photos';
+          allPhotos.forEach(src => {
+            const img = document.createElement('img');
+            img.src = src;
+            img.alt = '';
+            img.addEventListener('click', (e) => { e.stopPropagation(); openLightbox(src); });
+            photosWrap.appendChild(img);
+          });
+          msgWrap.appendChild(photosWrap);
+        }
       }
+      /* TEMP-OFF: 과거 카드 수정 버튼 - 나중에 이 블록 삭제
       const editWrap = document.createElement('div');
       ['seul', 'ji'].forEach(author => {
         const entry = item.reviews && item.reviews[author];
@@ -890,6 +902,7 @@
         editWrap.appendChild(editBtn);
       });
       msgWrap.appendChild(editWrap);
+      TEMP-OFF-END */
       row.appendChild(dt); row.appendChild(msgWrap);
       historyList.appendChild(row);
     });
