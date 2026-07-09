@@ -244,6 +244,22 @@ app.get('/api/history', async (req, res) => {
   }
 });
 
+// 가장 최근 후기 업데이트 시각 (새 소식 배지용)
+app.get('/api/last-update', async (req, res) => {
+  try {
+    const r = await pool.query(
+      'SELECT author, updated_at FROM couple_reviews ORDER BY updated_at DESC LIMIT 1'
+    );
+    if (r.rowCount === 0) {
+      return res.json({ latest: null, author: null });
+    }
+    res.json({ latest: r.rows[0].updated_at, author: r.rows[0].author });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'last_update_failed' });
+  }
+});
+
 app.get('/health', (req, res) => res.send('ok'));
 
 initDb()
