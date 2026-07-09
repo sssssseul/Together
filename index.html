@@ -66,7 +66,7 @@
     margin:0 0 14px;
     cursor:pointer;
     box-shadow:0 3px 8px rgba(60,50,30,.08);
-    animation: badgeShake 3.4s ease-in-out infinite;
+    animation: badgeShake .55s ease-in-out infinite;
   }
   .update-badge:hover{ border-color:rgba(168,150,138,.55); }
   .update-badge::before{
@@ -78,13 +78,10 @@
     background:var(--dot-color, #C9748F);
   }
   @keyframes badgeShake{
-    0%, 85%, 100% { transform:translateX(0) rotate(0); }
-    87% { transform:translateX(-3px) rotate(-3deg); }
-    89% { transform:translateX(3px) rotate(3deg); }
-    91% { transform:translateX(-3px) rotate(-2deg); }
-    93% { transform:translateX(3px) rotate(2deg); }
-    95% { transform:translateX(-2px) rotate(-1deg); }
-    97% { transform:translateX(0) rotate(0); }
+    0%, 100% { transform:translateX(0) rotate(0) scale(1); }
+    25% { transform:translateX(-3px) rotate(-4deg) scale(1.03); }
+    50% { transform:translateX(0) rotate(0) scale(1); }
+    75% { transform:translateX(3px) rotate(4deg) scale(1.03); }
   }
 
   .rule{
@@ -957,7 +954,10 @@
     historyList.hidden = isOpen;
     if(isOpen){ historyPager.hidden = true; }
     historyToggle.classList.toggle('open', !isOpen);
-    if(!isOpen){ loadHistory(1); }
+    if(!isOpen){
+      loadHistory(1);
+      markActivitySeen();
+    }
   });
   pagerPrev.addEventListener('click', () => { if(historyPage > 1) loadHistory(historyPage - 1); });
   pagerNext.addEventListener('click', () => { loadHistory(historyPage + 1); });
