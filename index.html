@@ -50,6 +50,43 @@
     font-size:21px;
     font-weight:700;
   }
+  .update-badge{
+    appearance:none;
+    display:inline-flex;
+    align-items:center;
+    gap:7px;
+    border:1px solid rgba(168,150,138,.35);
+    background:var(--card);
+    color:var(--ink);
+    font-family:'Noto Sans KR', sans-serif;
+    font-size:12px;
+    font-weight:500;
+    padding:7px 15px 7px 12px;
+    border-radius:999px;
+    margin:0 0 14px;
+    cursor:pointer;
+    box-shadow:0 3px 8px rgba(60,50,30,.08);
+    animation: badgeShake 3.4s ease-in-out infinite;
+  }
+  .update-badge:hover{ border-color:rgba(168,150,138,.55); }
+  .update-badge::before{
+    content:'';
+    width:7px;
+    height:7px;
+    flex-shrink:0;
+    border-radius:50%;
+    background:var(--dot-color, #C9748F);
+  }
+  @keyframes badgeShake{
+    0%, 85%, 100% { transform:translateX(0) rotate(0); }
+    87% { transform:translateX(-3px) rotate(-3deg); }
+    89% { transform:translateX(3px) rotate(3deg); }
+    91% { transform:translateX(-3px) rotate(-2deg); }
+    93% { transform:translateX(3px) rotate(2deg); }
+    95% { transform:translateX(-2px) rotate(-1deg); }
+    97% { transform:translateX(0) rotate(0); }
+  }
+
   .rule{
     width:56px; height:2px; margin:0 auto 26px;
     background:linear-gradient(90deg, transparent, var(--accent), transparent);
@@ -387,6 +424,7 @@
 <div class="card-app">
   <p class="eyebrow">둘이서 오늘의 카드</p>
   <h1 id="dateLabel">-</h1>
+  <button class="update-badge" id="updateBadge" type="button" hidden>새 후기가 있어요</button>
   <div class="rule"></div>
 
   <div class="stage" id="stage">
@@ -492,6 +530,7 @@
   const promptText = document.getElementById('promptText');
   const dateMark = document.getElementById('dateMark');
   const dateLabel = document.getElementById('dateLabel');
+  const updateBadge = document.getElementById('updateBadge');
   const alreadyNote = document.getElementById('alreadyNote');
   const errorNote = document.getElementById('errorNote');
   const reviewBlock = document.getElementById('reviewBlock');
@@ -680,6 +719,7 @@
       renderReviewEntries();
       if(selectedAuthor === author) clearForm();
       if(!historyList.hidden){ loadHistory(historyPage); }
+      markActivitySeen();
     }catch(e){
       reviewStatus.textContent = '삭제 실패';
       reviewStatus.classList.add('show');
@@ -942,6 +982,7 @@
       renderReviewEntries();
       clearForm();
       if(!historyList.hidden){ loadHistory(historyPage); }
+      markActivitySeen();
     }catch(e){
       reviewStatus.textContent = '저장 실패';
       reviewStatus.classList.add('show');
@@ -967,6 +1008,7 @@
         reviewBlock.hidden = false;
         renderReviewEntries();
         clearForm();
+        markActivitySeen();
       }
       return;
     }
@@ -997,6 +1039,44 @@
     if(e.key === 'Enter' || e.key === ' '){ e.preventDefault(); draw(); }
   });
 
+  const LAST_SEEN_KEY = 'couplecard:lastSeenUpdate';
+
+  function hasBatchim(str){
+    const lastChar = str.charAt(str.length - 1);
+    const code = lastChar.charCodeAt(0) - 0xAC00;
+    if(code < 0 || code > 11171) return true;
+    return (code % 28) !== 0;
+  }
+
+  async function checkNewActivity(){
+    try{
+      const data = await fetchJSON('/api/last-update');
+      if(!data.latest) return;
+      const lastSeen = localStorage.getItem(LAST_SEEN_KEY);
+      if(!lastSeen || new Date(data.latest) > new Date(lastSeen)){
+        const authorInfo = data.author && AUTHORS[data.author];
+        const name = authorInfo ? authorInfo.name : '상대방';
+        const particle = hasBatchim(name) ? '이' : '가';
+        const dotColor = data.author === 'ji' ? '#5B7C99' : '#C9748F';
+        updateBadge.style.setProperty('--dot-color', dotColor);
+        updateBadge.textContent = name + particle + ' 남긴 후기가 있어요';
+        updateBadge.hidden = false;
+      }
+    }catch(e){
+      // 배지 체크 실패는 조용히 무시 (핵심 기능 아님)
+    }
+  }
+
+  function markActivitySeen(){
+    try{ localStorage.setItem(LAST_SEEN_KEY, new Date().toISOString()); }catch(e){}
+    updateBadge.hidden = true;
+  }
+
+  updateBadge.addEventListener('click', () => {
+    markActivitySeen();
+    if(historyList.hidden){ historyToggle.click(); }
+  });
+
   async function init(){
     try{
       const status = await fetchJSON('/api/status');
@@ -1007,6 +1087,7 @@
         todaysReviews = status.reviews || {};
         // 이미 뽑았어도 기본은 닫힌 하트 상태로 시작. 탭하면 그때 캐시된 카드를 보여줌.
       }
+      checkNewActivity();
     }catch(e){
       errorNote.hidden = false;
       dateLabel.textContent = '연결 오류';
