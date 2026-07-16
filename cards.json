@@ -229,7 +229,8 @@
   },
   {
     "type": "do",
-    "text": "오늘 저녁 설거지는 같이 하기"
+    "text": "오늘 저녁 설거지는 같이 하기",
+    "weekendOnly": true
   },
   {
     "type": "do",
@@ -269,7 +270,8 @@
   },
   {
     "type": "do",
-    "text": "같이 방 하나 정리하기"
+    "text": "같이 방 하나 정리하기",
+    "weekendOnly": true
   },
   {
     "type": "do",
@@ -317,7 +319,8 @@
   },
   {
     "type": "do",
-    "text": "침구 같이 정리하고 환기시키기"
+    "text": "침구 같이 정리하고 환기시키기",
+    "weekendOnly": true
   },
   {
     "type": "do",
@@ -361,7 +364,8 @@
   },
   {
     "type": "do",
-    "text": "같이 책상이나 서랍 하나 정리하기"
+    "text": "같이 책상이나 서랍 하나 정리하기",
+    "weekendOnly": true
   },
   {
     "type": "do",
@@ -377,7 +381,8 @@
   },
   {
     "type": "do",
-    "text": "좋아하는 플레이리스트 틀어놓고 집안일 같이 하기"
+    "text": "좋아하는 플레이리스트 틀어놓고 집안일 같이 하기",
+    "weekendOnly": true
   },
   {
     "type": "do",
