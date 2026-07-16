@@ -73,6 +73,13 @@ async function initDb() {
   `);
 }
 
+function isWeekendKST(dateStr) {
+  // dateStr은 이미 KST 기준 'YYYY-MM-DD' 문자열이라, UTC 자정으로 파싱해도 요일은 동일
+  const d = new Date(dateStr + 'T00:00:00Z');
+  const day = d.getUTCDay(); // 0=일, 6=토
+  return day === 0 || day === 6;
+}
+
 async function getPool() {
   const r = await pool.query('SELECT pool FROM couple_state WHERE id = 1');
   return r.rows[0] ? r.rows[0].pool : [];
@@ -81,13 +88,22 @@ async function savePool(poolArr) {
   await pool.query('UPDATE couple_state SET pool = $1 WHERE id = 1', [JSON.stringify(poolArr)]);
 }
 
-async function pickNextIndex() {
+async function pickNextIndex(dateStr) {
+  const weekend = isWeekendKST(dateStr);
+  // 주말에만 나오는 카드(집안일 등)는 평일엔 후보에서 아예 제외
+  const eligible = CARDS
+    .map((_, i) => i)
+    .filter(i => weekend || !CARDS[i].weekendOnly);
+
   let usedPool = await getPool();
-  let available = CARDS.map((_, i) => i).filter(i => !usedPool.includes(i));
+  let available = eligible.filter(i => !usedPool.includes(i));
+
   if (available.length === 0) {
-    usedPool = [];
-    available = CARDS.map((_, i) => i);
+    // 이 요일 그룹(평일용/전체) 안에서만 사용 기록을 초기화, 반대쪽 진행 상황은 안 건드림
+    usedPool = usedPool.filter(i => !eligible.includes(i));
+    available = eligible;
   }
+
   const chosen = available[Math.floor(Math.random() * available.length)];
   usedPool.push(chosen);
   await savePool(usedPool);
@@ -135,7 +151,7 @@ app.post('/api/draw', async (req, res) => {
     if (existing.rowCount > 0) {
       return res.json({ date: today, text: CARDS[existing.rows[0].card_index].text });
     }
-    const idx = await pickNextIndex();
+    const idx = await pickNextIndex(today);
     await pool.query(
       'INSERT INTO couple_draws (date, card_index) VALUES ($1, $2) ON CONFLICT (date) DO NOTHING',
       [today, idx]
