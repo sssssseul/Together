@@ -51,12 +51,14 @@
     font-weight:700;
   }
   .dday-line{
-    margin:0 0 8px;
+    margin:0;
     font-family:'Gowun Batang', 'Apple Color Emoji','Segoe UI Emoji','Noto Color Emoji', serif;
     font-size:12px;
     font-weight:700;
-    color:#000;
+    color:#fff;
+    opacity:.9;
     letter-spacing:.02em;
+    text-shadow: 0 1px 3px rgba(0,0,0,.18);
   }
   .dday-line .sep{
     margin:0 6px;
@@ -97,7 +99,7 @@
   }
 
   .rule{
-    width:56px; height:2px; margin:0 auto 8px;
+    width:56px; height:2px; margin:0 auto 26px;
     background:linear-gradient(90deg, transparent, var(--accent), transparent);
   }
 
@@ -120,8 +122,10 @@
     background:linear-gradient(160deg, var(--card-back), var(--card-back-dark));
     box-shadow: 0 14px 26px rgba(60,50,30,.22);
     display:flex;
+    flex-direction:column;
     align-items:center;
     justify-content:center;
+    gap:12px;
     cursor:pointer;
     transition: transform .5s cubic-bezier(.3,.9,.3,1.1), opacity .4s ease .1s;
     color:#F4EFE6;
@@ -438,7 +442,6 @@
 <body>
 
 <div class="card-app">
-  <p class="dday-line" id="ddayLine"></p>
   <p class="eyebrow">둘이서 오늘의 카드</p>
   <h1 id="dateLabel">-</h1>
   <button class="update-badge" id="updateBadge" type="button" hidden>새 후기가 있어요</button>
@@ -453,6 +456,7 @@
         </svg>
         <span class="tab-text">두근!</span>
       </div>
+      <p class="dday-line" id="ddayLine"></p>
     </div>
     <div class="result-card" id="resultCard" role="button" tabindex="0" aria-label="카드 뒤집기">
       <p class="prompt"><span class="highlight" id="promptText"></span></p>
@@ -1134,7 +1138,7 @@
     const marryDays = daysBetween(MARRY_DATE, today) + 1;
     ddayLine.innerHTML =
       `❤️+${meetDays}` +
-      `<span class="sep">    </span>` +
+      `<span class="sep">      </span>` +
       `💍+${marryDays}`;
     applyEmoji(ddayLine);
   }
