@@ -51,8 +51,9 @@
     font-weight:700;
   }
   .dday-line{
-    margin:0 0 18px;
-    font-size:11.5px;
+    margin:0 0 10px;
+    font-family:'Gowun Batang', 'Apple Color Emoji','Segoe UI Emoji','Noto Color Emoji', serif;
+    font-size:15px;
     color:var(--ink-soft);
     letter-spacing:.02em;
   }
@@ -95,7 +96,7 @@
   }
 
   .rule{
-    width:56px; height:2px; margin:0 auto 14px;
+    width:56px; height:2px; margin:0 auto 8px;
     background:linear-gradient(90deg, transparent, var(--accent), transparent);
   }
 
@@ -1132,7 +1133,7 @@
     const marryDays = daysBetween(MARRY_DATE, today) + 1;
     ddayLine.innerHTML =
       `❤️+${meetDays}` +
-      `<span class="sep">  </span>` +
+      `<span class="sep">    </span>` +
       `💍+${marryDays}`;
     applyEmoji(ddayLine);
   }
