@@ -51,11 +51,11 @@
     font-weight:700;
   }
   .dday-line{
-    margin:0 0 10px;
+    margin:0 0 8px;
     font-family:'Gowun Batang', 'Apple Color Emoji','Segoe UI Emoji','Noto Color Emoji', serif;
-    font-size:13px;
+    font-size:12px;
     font-weight:700;
-    color:var(--ink-soft);
+    color:#000;
     letter-spacing:.02em;
   }
   .dday-line .sep{
@@ -438,11 +438,11 @@
 <body>
 
 <div class="card-app">
+  <p class="dday-line" id="ddayLine"></p>
   <p class="eyebrow">둘이서 오늘의 카드</p>
   <h1 id="dateLabel">-</h1>
   <button class="update-badge" id="updateBadge" type="button" hidden>새 후기가 있어요</button>
   <div class="rule"></div>
-  <p class="dday-line" id="ddayLine"></p>
 
   <div class="stage" id="stage">
     <div class="deck-shadow"><span></span><span></span></div>
