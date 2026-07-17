@@ -45,10 +45,20 @@
     font-weight:500;
   }
   h1{
-    margin:0 0 14px;
+    margin:0 0 4px;
     font-family:'Gowun Batang', 'Apple Color Emoji','Segoe UI Emoji','Noto Color Emoji', serif;
     font-size:21px;
     font-weight:700;
+  }
+  .dday-line{
+    margin:0 0 18px;
+    font-size:11.5px;
+    color:var(--ink-soft);
+    letter-spacing:.02em;
+  }
+  .dday-line .sep{
+    margin:0 6px;
+    opacity:.5;
   }
   .update-badge{
     appearance:none;
@@ -85,7 +95,7 @@
   }
 
   .rule{
-    width:56px; height:2px; margin:0 auto 26px;
+    width:56px; height:2px; margin:0 auto 14px;
     background:linear-gradient(90deg, transparent, var(--accent), transparent);
   }
 
@@ -430,6 +440,7 @@
   <h1 id="dateLabel">-</h1>
   <button class="update-badge" id="updateBadge" type="button" hidden>새 후기가 있어요</button>
   <div class="rule"></div>
+  <p class="dday-line" id="ddayLine"></p>
 
   <div class="stage" id="stage">
     <div class="deck-shadow"><span></span><span></span></div>
@@ -535,6 +546,7 @@
   const promptText = document.getElementById('promptText');
   const dateMark = document.getElementById('dateMark');
   const dateLabel = document.getElementById('dateLabel');
+  const ddayLine = document.getElementById('ddayLine');
   const updateBadge = document.getElementById('updateBadge');
   const alreadyNote = document.getElementById('alreadyNote');
   const errorNote = document.getElementById('errorNote');
@@ -1100,6 +1112,31 @@
     if(historyList.hidden){ historyToggle.click(); }
   });
 
+  const MEET_DATE = '2014-03-23';
+  const MARRY_DATE = '2024-03-23';
+
+  function daysBetween(startStr, endStr){
+    const start = new Date(startStr + 'T00:00:00Z');
+    const end = new Date(endStr + 'T00:00:00Z');
+    return Math.round((end - start) / 86400000);
+  }
+
+  function localTodayStr(){
+    const d = new Date();
+    return `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}`;
+  }
+
+  function renderDday(){
+    const today = localTodayStr();
+    const meetDays = daysBetween(MEET_DATE, today) + 1;
+    const marryDays = daysBetween(MARRY_DATE, today) + 1;
+    ddayLine.innerHTML =
+      `❤️+${meetDays}` +
+      `<span class="sep">  </span>` +
+      `💍+${marryDays}`;
+    applyEmoji(ddayLine);
+  }
+
   async function init(){
     try{
       const status = await fetchJSON('/api/status');
@@ -1117,6 +1154,7 @@
     }
   }
 
+  renderDday();
   init();
 })();
 </script>
