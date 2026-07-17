@@ -37,6 +37,13 @@
 
   .card-app{ width:100%; max-width:360px; text-align:center; }
 
+  .header-row{
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    gap:8px;
+    margin:0 0 6px;
+  }
   .eyebrow{
     margin:0 0 6px;
     font-size:12px;
@@ -51,18 +58,16 @@
     font-weight:700;
   }
   .dday-line{
-    margin:0;
-    font-family:'Gowun Batang', 'Apple Color Emoji','Segoe UI Emoji','Noto Color Emoji', serif;
-    font-size:12px;
-    font-weight:700;
-    color:#fff;
-    opacity:.9;
+    text-align:center;
+    margin:4px 0 12px;
+    font-size:11px;
+    font-weight:400;
+    color:var(--ink-soft);
+    opacity:.75;
     letter-spacing:.02em;
-    text-shadow: 0 1px 3px rgba(0,0,0,.18);
   }
   .dday-line .sep{
-    margin:0 6px;
-    opacity:.5;
+    letter-spacing:normal;
   }
   .update-badge{
     appearance:none;
@@ -122,10 +127,8 @@
     background:linear-gradient(160deg, var(--card-back), var(--card-back-dark));
     box-shadow: 0 14px 26px rgba(60,50,30,.22);
     display:flex;
-    flex-direction:column;
     align-items:center;
     justify-content:center;
-    gap:12px;
     cursor:pointer;
     transition: transform .5s cubic-bezier(.3,.9,.3,1.1), opacity .4s ease .1s;
     color:#F4EFE6;
@@ -456,7 +459,6 @@
         </svg>
         <span class="tab-text">두근!</span>
       </div>
-      <p class="dday-line" id="ddayLine"></p>
     </div>
     <div class="result-card" id="resultCard" role="button" tabindex="0" aria-label="카드 뒤집기">
       <p class="prompt"><span class="highlight" id="promptText"></span></p>
@@ -535,6 +537,7 @@
   <button class="history-toggle" id="historyToggle" type="button">
     <span>지난 카드 보기</span><span class="chev">▾</span>
   </button>
+  <p class="dday-line" id="ddayLine" hidden></p>
   <div class="history" id="historyList" hidden></div>
   <div class="history-pager" id="historyPager" hidden>
     <button class="pager-btn" id="pagerPrev" type="button" aria-label="이전 페이지">‹</button>
@@ -987,6 +990,7 @@
   historyToggle.addEventListener('click', () => {
     const isOpen = !historyList.hidden;
     historyList.hidden = isOpen;
+    ddayLine.hidden = isOpen;
     if(isOpen){ historyPager.hidden = true; }
     historyToggle.classList.toggle('open', !isOpen);
     if(!isOpen){
@@ -1138,7 +1142,7 @@
     const marryDays = daysBetween(MARRY_DATE, today) + 1;
     ddayLine.innerHTML =
       `❤️+${meetDays}` +
-      `<span class="sep">      </span>` +
+      `<span class="sep">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span>` +
       `💍+${marryDays}`;
     applyEmoji(ddayLine);
   }
