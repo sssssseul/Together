@@ -284,6 +284,19 @@ app.get('/api/last-update', async (req, res) => {
   }
 });
 
+// TEMP: 오늘 카드(+오늘 후기) 초기화 - 테스트/실수 복구용, 나중에 이 블록 삭제
+app.post('/api/reset-today', async (req, res) => {
+  try {
+    const today = todayStrKST();
+    await pool.query('DELETE FROM couple_draws WHERE date = $1', [today]);
+    res.json({ ok: true, date: today });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'reset_failed' });
+  }
+});
+// /TEMP
+
 app.get('/health', (req, res) => res.send('ok'));
 
 initDb()
