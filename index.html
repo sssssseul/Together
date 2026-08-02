@@ -432,6 +432,23 @@
 
   .error-note{ font-size:12px; color:#AE3B34; margin-top:10px; }
 
+  /* TEMP: 오늘 카드 초기화 버튼 스타일 - 나중에 이 블록 삭제 */
+  .reset-today-btn{
+    display:block;
+    margin:20px auto 0;
+    appearance:none;
+    background:none;
+    border:none;
+    font-family:'Noto Sans KR', sans-serif;
+    font-size:11px;
+    color:rgba(122,114,100,.5);
+    text-decoration:underline;
+    cursor:pointer;
+    padding:4px;
+  }
+  .reset-today-btn:hover{ color:var(--ink-soft); }
+  /* /TEMP */
+
   [hidden]{ display:none !important; }
 
   img.emoji{
@@ -544,6 +561,10 @@
     <span class="pager-label" id="pagerLabel">1 / 1</span>
     <button class="pager-btn" id="pagerNext" type="button" aria-label="다음 페이지">›</button>
   </div>
+
+  <!-- TEMP: 오늘 카드 초기화 버튼 - 테스트/실수 복구용, 나중에 이 블록 삭제 -->
+  <button class="reset-today-btn" id="resetTodayBtn" type="button">오늘 카드 초기화</button>
+  <!-- /TEMP -->
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/twemoji@14.0.2/dist/twemoji.min.js" crossorigin="anonymous"></script>
@@ -1096,7 +1117,7 @@
       if(authors.length === 0) return;
 
       if(authors.length >= 2){
-        const names = authors.map(a => AUTHORS[a].name).join(' 💗 ');
+        const names = authors.map(a => AUTHORS[a].name).join(' 💕 ');
         updateBadge.style.setProperty('--dot-color', '#A8968A');
         updateBadge.textContent = names + '이 남긴 후기가 있어요';
       }else{
@@ -1142,7 +1163,7 @@
     const marryDays = daysBetween(MARRY_DATE, today) + 1;
     ddayLine.innerHTML =
       `❤️+${meetDays}` +
-      `<span class="sep">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span>` +
+      `<span class="sep">&nbsp;&nbsp;&nbsp;&nbsp;</span>` +
       `💍+${marryDays}`;
     applyEmoji(ddayLine);
   }
@@ -1165,6 +1186,19 @@
   }
 
   renderDday();
+  // TEMP: 오늘 카드 초기화 버튼 - 나중에 이 블록 삭제
+  const resetTodayBtn = document.getElementById('resetTodayBtn');
+  resetTodayBtn.addEventListener('click', async () => {
+    if(!confirm('오늘 뽑은 카드랑 오늘 남긴 후기가 전부 삭제돼. 계속할까?')) return;
+    try{
+      await fetchJSON('/api/reset-today', { method: 'POST' });
+      location.reload();
+    }catch(e){
+      alert('초기화 실패, 다시 시도해줘');
+    }
+  });
+  // /TEMP
+
   init();
 })();
 </script>
