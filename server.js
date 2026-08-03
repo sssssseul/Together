@@ -41,9 +41,11 @@ async function initDb() {
   await pool.query(`
     CREATE TABLE IF NOT EXISTS couple_state (
       id INTEGER PRIMARY KEY DEFAULT 1,
-      pool JSONB NOT NULL DEFAULT '[]'
+      pool JSONB NOT NULL DEFAULT '[]',
+      last_reset_date TEXT
     );
   `);
+  await pool.query(`ALTER TABLE couple_state ADD COLUMN IF NOT EXISTS last_reset_date TEXT;`);
   await pool.query(`
     INSERT INTO couple_state (id, pool) VALUES (1, '[]')
     ON CONFLICT (id) DO NOTHING;
@@ -288,7 +290,13 @@ app.get('/api/last-update', async (req, res) => {
 app.post('/api/reset-today', async (req, res) => {
   try {
     const today = todayStrKST();
+    const stateRes = await pool.query('SELECT last_reset_date FROM couple_state WHERE id = 1');
+    const lastReset = stateRes.rows[0] ? stateRes.rows[0].last_reset_date : null;
+    if (lastReset === today) {
+      return res.status(429).json({ error: 'already_reset_today' });
+    }
     await pool.query('DELETE FROM couple_draws WHERE date = $1', [today]);
+    await pool.query('UPDATE couple_state SET last_reset_date = $1 WHERE id = 1', [today]);
     res.json({ ok: true, date: today });
   } catch (err) {
     console.error(err);
